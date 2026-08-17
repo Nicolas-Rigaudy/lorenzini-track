@@ -19,6 +19,7 @@ class Study(Base):
     dataset_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     abstract: Mapped[str | None] = mapped_column(String)
+    data_provider: Mapped[str | None] = mapped_column(String)
     source_url: Mapped[str | None] = mapped_column(String)
     license: Mapped[str | None] = mapped_column(String)
     rights_holder: Mapped[str | None] = mapped_column(String)

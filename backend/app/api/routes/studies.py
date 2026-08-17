@@ -25,6 +25,7 @@ def _summarize(db: Session, study: Study) -> dict:
         "dataset_id": study.dataset_id,
         "title": study.title,
         "abstract": study.abstract,
+        "data_provider": study.data_provider,
         "source_url": study.source_url,
         "license": study.license,
         "rights_holder": study.rights_holder,

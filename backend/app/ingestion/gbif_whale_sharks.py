@@ -42,7 +42,16 @@ def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> dict:
     title = dataset_el.findtext("title", default="").strip()
     abstract_para = dataset_el.findtext("abstract/para", default="")
     abstract_para = re.sub(r"<[^>]+>", "", abstract_para)  # strip embedded HTML (e.g. <a> links)
-    abstract = re.sub(r"\s+", " ", abstract_para).strip() or None
+
+    # The raw text mixes a "Original provider / Dataset credits" preamble with the actual
+    # research abstract under an "Abstract:" heading - split them so the UI can show the real
+    # abstract on its own, and pull out the data provider name as a separate field.
+    abstract_section = abstract_para.split("Abstract:", 1)
+    abstract = re.sub(r"\s+", " ", abstract_section[-1]).strip() or None if abstract_section[-1] else None
+
+    data_provider_match = re.search(r"Data provider\s*\n\s*([^\n]+)", abstract_para)
+    data_provider = data_provider_match.group(1).strip() if data_provider_match else None
+
     source_url = dataset_el.findtext("distribution/online/url")
     rights_el = dataset_el.find("intellectualRights/para")
     rights_text = "".join(rights_el.itertext()) if rights_el is not None else ""
@@ -54,6 +63,7 @@ def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> dict:
         "dataset_id": dataset_id,
         "title": title,
         "abstract": abstract,
+        "data_provider": data_provider,
         "source_url": source_url,
         "license": rights_text or None,
         "published_date": published_date,
@@ -82,6 +92,7 @@ def upsert_study(metadata: dict, rights_holder: str | None) -> Study:
 
         study.title = metadata["title"]
         study.abstract = metadata["abstract"]
+        study.data_provider = metadata["data_provider"]
         study.source_url = metadata["source_url"]
         study.license = metadata["license"]
         study.rights_holder = rights_holder
