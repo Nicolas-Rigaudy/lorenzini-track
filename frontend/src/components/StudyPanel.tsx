@@ -5,6 +5,7 @@ interface Study {
   id: number
   title: string
   abstract: string | null
+  data_provider: string | null
   source_url: string | null
   license: string | null
   rights_holder: string | null
@@ -19,80 +20,173 @@ interface StudyPanelProps {
   onSelect: (studyId: number | null) => void
 }
 
+function formatDate(iso: string | null): string {
+  if (!iso) return '?'
+  return iso.slice(0, 10)
+}
+
 export function StudyPanel({ selectedStudyId, onSelect }: StudyPanelProps) {
   const [studies, setStudies] = useState<Study[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/studies`)
       .then((r) => r.json())
-      .then(setStudies)
+      .then((data) => {
+        setStudies(data)
+        setLoading(false)
+      })
   }, [])
 
   return (
     <div
       style={{
         position: 'absolute',
-        top: 12,
-        left: 12,
-        width: 320,
-        maxHeight: 'calc(100% - 24px)',
-        overflowY: 'auto',
-        background: 'rgba(255,255,255,0.95)',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: 13,
+        top: 16,
+        left: 16,
+        bottom: 96,
+        width: 340,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--color-surface)',
+        borderRadius: 10,
+        boxShadow: '0 2px 12px rgba(15,36,54,0.25)',
+        fontFamily: 'var(--font-sans)',
+        overflow: 'hidden',
         zIndex: 1,
       }}
     >
-      <div style={{ padding: '10px 12px', fontWeight: 600, borderBottom: '1px solid #ddd' }}>
-        Studies ({studies.length})
+      <div
+        style={{
+          padding: '14px 16px',
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-surface-alt)',
+        }}
+      >
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-ink)' }}>
+          Studies
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 2 }}>
+          {loading
+            ? 'Loading…'
+            : studies.length === 1
+              ? '1 tracking study loaded — select it to explore'
+              : `${studies.length} tracking studies loaded`}
+        </div>
       </div>
 
-      {studies.map((study) => {
-        const isSelected = study.id === selectedStudyId
-        return (
-          <div
-            key={study.id}
-            onClick={() => onSelect(isSelected ? null : study.id)}
-            style={{
-              padding: '10px 12px',
-              borderBottom: '1px solid #eee',
-              cursor: 'pointer',
-              background: isSelected ? '#fef1e8' : 'transparent',
-            }}
-          >
-            <div style={{ fontWeight: 600 }}>{study.title}</div>
-            <div style={{ color: '#555', marginTop: 2 }}>
-              {study.species.join(', ')} &middot; {study.record_count} records
-            </div>
-            <div style={{ color: '#888', fontSize: 12 }}>
-              {study.date_range.start?.slice(0, 10)} &ndash; {study.date_range.end?.slice(0, 10)}
-            </div>
-
-            {isSelected && (
-              <div style={{ marginTop: 8, color: '#333' }}>
-                {study.abstract && <p style={{ margin: '0 0 8px' }}>{study.abstract}</p>}
-                <div>
-                  <strong>Licence:</strong> {study.license ?? 'Not specified'}
-                </div>
-                {study.rights_holder && (
-                  <div>
-                    <strong>Rights holder:</strong> {study.rights_holder}
-                  </div>
-                )}
-                {study.source_url && (
-                  <div style={{ marginTop: 4 }}>
-                    <a href={study.source_url} target="_blank" rel="noreferrer">
-                      View source dataset
-                    </a>
-                  </div>
-                )}
+      <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+        {studies.map((study) => {
+          const isSelected = study.id === selectedStudyId
+          return (
+            <div
+              key={study.id}
+              onClick={() => onSelect(isSelected ? null : study.id)}
+              style={{
+                padding: '12px 16px',
+                borderBottom: '1px solid var(--color-border)',
+                cursor: 'pointer',
+                background: isSelected ? 'var(--color-accent-soft)' : 'transparent',
+                borderLeft: isSelected
+                  ? '3px solid var(--color-brand-light)'
+                  : '3px solid transparent',
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
+                {study.title}
               </div>
-            )}
-          </div>
-        )
-      })}
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--color-ink-soft)',
+                  marginTop: 4,
+                  fontStyle: 'italic',
+                }}
+              >
+                {study.species.join(', ') || 'Unknown species'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 2 }}>
+                {study.record_count} records &middot; {formatDate(study.date_range.start)} –{' '}
+                {formatDate(study.date_range.end)}
+              </div>
+
+              {isSelected && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    paddingTop: 10,
+                    borderTop: '1px solid var(--color-border)',
+                    fontSize: 13,
+                    color: 'var(--color-ink)',
+                  }}
+                >
+                  {study.abstract && (
+                    <>
+                      <div style={{ fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: 'var(--color-brand-light)' }}>
+                        Purpose
+                      </div>
+                      <p style={{ margin: '4px 0 12px', color: 'var(--color-ink-soft)', lineHeight: 1.5 }}>
+                        {study.abstract}
+                      </p>
+                    </>
+                  )}
+
+                  <div style={{ fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: 'var(--color-brand-light)' }}>
+                    Details
+                  </div>
+                  <ul style={{ margin: '4px 0 0', padding: '0 0 0 18px', lineHeight: 1.7 }}>
+                    <li>
+                      <strong>Species tracked:</strong> {study.species.join(', ') || 'Unknown'}
+                    </li>
+                    <li>
+                      <strong>Time period:</strong> {formatDate(study.date_range.start)} –{' '}
+                      {formatDate(study.date_range.end)}
+                    </li>
+                    <li>
+                      <strong>Records:</strong> {study.record_count}
+                    </li>
+                    {study.rights_holder && (
+                      <li>
+                        <strong>Conducted by:</strong> {study.rights_holder}
+                      </li>
+                    )}
+                    {study.data_provider && (
+                      <li>
+                        <strong>Tagging/data provider:</strong> {study.data_provider}
+                      </li>
+                    )}
+                    {study.published_date && (
+                      <li>
+                        <strong>Published:</strong> {formatDate(study.published_date)}
+                      </li>
+                    )}
+                    <li>
+                      <strong>Licence:</strong> {study.license ?? 'Not specified'}
+                    </li>
+                  </ul>
+
+                  {study.source_url && (
+                    <a
+                      href={study.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'inline-block',
+                        marginTop: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--color-brand-light)',
+                      }}
+                    >
+                      View source dataset →
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

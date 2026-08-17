@@ -1,5 +1,19 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+
+  --color-ink: #0f2436;
+  --color-ink-soft: #3a5468;
+  --color-ink-faint: #6b8496;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f8fa;
+  --color-border: #d7e2e8;
+  --color-accent: #e8702a;
+  --color-accent-soft: #e5f1f6;
+  --color-brand: #0f4c66;
+  --color-brand-light: #1a7fa3;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 html,
@@ -9,4 +23,14 @@ body,
   padding: 0;
   height: 100%;
   width: 100%;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--color-brand);
 }

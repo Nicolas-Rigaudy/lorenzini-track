@@ -43,7 +43,25 @@ async function buildStyle(): Promise<StyleSpecification> {
       },
     },
     layers: [
-      { id: 'bathymetry', type: 'raster', source: 'bathymetry' },
+      {
+        id: 'bathymetry',
+        type: 'raster',
+        source: 'bathymetry',
+        paint: {
+          'raster-saturation': -0.3,
+        },
+      },
+      {
+        id: 'bathymetry-blue-wash',
+        type: 'background',
+        paint: {
+          // The raw EMODnet/GEBCO relief uses warm tan/brown for land - wash the whole map
+          // with a translucent ocean-blue tint so it reads as one cohesive blue-toned scheme
+          // (rather than beige) while keeping the underlying relief detail visible through it.
+          'background-color': '#0f4c66',
+          'background-opacity': 0.28,
+        },
+      },
       ...baseStyle.layers.filter((l) => KEPT_VECTOR_LAYER_IDS.has(l.id)),
     ],
   }
@@ -146,8 +164,8 @@ export function MapView({ selectedStudyId }: MapViewProps) {
             source: 'undersea-features',
             minzoom: 3,
             paint: {
-              'circle-radius': 2,
-              'circle-color': '#2b6e8f',
+              'circle-radius': 2.5,
+              'circle-color': '#0d3a52',
             },
           })
 
@@ -159,14 +177,14 @@ export function MapView({ selectedStudyId }: MapViewProps) {
             layout: {
               'text-field': ['concat', ['get', 'NAME'], ' ', ['get', 'TYPE']],
               'text-font': ['Noto Sans Italic'],
-              'text-size': 11,
+              'text-size': 12,
               'text-variable-anchor': ['top'],
               'text-radial-offset': 0.4,
             },
             paint: {
-              'text-color': '#2b6e8f',
-              'text-halo-color': 'rgba(255,255,255,0.85)',
-              'text-halo-width': 1,
+              'text-color': '#0d3a52',
+              'text-halo-color': 'rgba(255,255,255,0.95)',
+              'text-halo-width': 1.8,
             },
           })
         })
