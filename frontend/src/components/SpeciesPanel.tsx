@@ -6,6 +6,21 @@ interface SpeciesPanelProps {
   selectedStudyId: number | null
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  'least concern': '#4b8f3a',
+  'near threatened': '#8ea23a',
+  vulnerable: '#e0a52c',
+  endangered: '#e0632c',
+  'critically endangered': '#c62828',
+  'extinct in the wild': '#5b2b6b',
+  extinct: '#1a1a1a',
+  'data deficient': '#7a8896',
+}
+
+function statusColor(status: string): string {
+  return STATUS_COLORS[status.toLowerCase()] ?? 'var(--color-ink-faint)'
+}
+
 export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
   const [scientificName, setScientificName] = useState<string | null>(null)
   const [summary, setSummary] = useState<SpeciesSummary | null>(null)
@@ -45,7 +60,7 @@ export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
         top: 16,
         right: 16,
         bottom: 16,
-        width: 280,
+        width: 300,
         background: 'var(--color-surface)',
         borderRadius: 10,
         boxShadow: '0 2px 12px rgba(15,36,54,0.25)',
@@ -76,7 +91,7 @@ export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
             />
           )}
           <div style={{ padding: '12px 16px' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-ink)' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-ink)' }}>
               {summary.title}
             </div>
             <div
@@ -89,25 +104,64 @@ export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
             >
               {scientificName}
             </div>
+
+            {summary.conservationStatus && (
+              <div
+                style={{
+                  display: 'inline-block',
+                  marginTop: 8,
+                  padding: '3px 10px',
+                  borderRadius: 12,
+                  background: statusColor(summary.conservationStatus),
+                  color: '#fff',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.3,
+                }}
+              >
+                IUCN: {summary.conservationStatus}
+              </div>
+            )}
+
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 11,
+                textTransform: 'uppercase',
+                letterSpacing: 0.4,
+                color: 'var(--color-brand-light)',
+                marginTop: 14,
+              }}
+            >
+              About
+            </div>
             {summary.extract && (
               <p
                 style={{
                   fontSize: 13,
                   color: 'var(--color-ink-soft)',
                   lineHeight: 1.5,
-                  marginTop: 8,
-                  marginBottom: 8,
+                  marginTop: 6,
+                  marginBottom: 0,
                 }}
               >
                 {summary.extract}
               </p>
             )}
+
             {summary.pageUrl && (
               <a
                 href={summary.pageUrl}
                 target="_blank"
                 rel="noreferrer"
-                style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-brand-light)' }}
+                style={{
+                  display: 'inline-block',
+                  marginTop: 12,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'var(--color-brand-light)',
+                }}
               >
                 Read more on Wikipedia →
               </a>
