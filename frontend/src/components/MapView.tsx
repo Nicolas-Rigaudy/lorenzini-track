@@ -49,9 +49,73 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
 }
 
-export function MapView() {
+function addOccurrenceLayer(map: MapLibreMap) {
+  map.addSource('occurrences', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  })
+
+  map.addLayer({
+    id: 'occurrence-point',
+    type: 'circle',
+    source: 'occurrences',
+    paint: {
+      'circle-radius': 5,
+      'circle-color': '#e8702a',
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 1,
+    },
+  })
+
+  map.on('click', 'occurrence-point', (e) => {
+    const feature = e.features?.[0]
+    if (!feature) return
+    const p = feature.properties as Record<string, unknown>
+
+    new maplibregl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(
+        `<strong>${p.vernacular_name ?? p.scientific_name}</strong><br/>` +
+          `<em>${p.scientific_name}</em><br/>` +
+          `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}<br/>` +
+          `Position uncertainty: ~${Math.round(Number(p.coordinate_uncertainty_in_meters) / 1000)} km` +
+          ` (aggregated per 1° grid cell)`,
+      )
+      .addTo(map)
+  })
+
+  map.on('mouseenter', 'occurrence-point', () => (map.getCanvas().style.cursor = 'pointer'))
+  map.on('mouseleave', 'occurrence-point', () => (map.getCanvas().style.cursor = ''))
+}
+
+async function loadOccurrences(map: MapLibreMap, studyId: number | null, flyTo: boolean) {
+  const url = studyId ? `${API_BASE_URL}/occurrences?study_id=${studyId}` : `${API_BASE_URL}/occurrences`
+  const data = await fetch(url).then((r) => r.json())
+
+  const source = map.getSource('occurrences') as maplibregl.GeoJSONSource | undefined
+  source?.setData(data)
+
+  if (flyTo && data.features.length > 0) {
+    const lons = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[0])
+    const lats = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[1])
+    map.fitBounds(
+      [
+        [Math.min(...lons), Math.min(...lats)],
+        [Math.max(...lons), Math.max(...lats)],
+      ],
+      { padding: 80, duration: 1000, maxZoom: 8 },
+    )
+  }
+}
+
+interface MapViewProps {
+  selectedStudyId: number | null
+}
+
+export function MapView({ selectedStudyId }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
+  const readyRef = useRef(false)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -107,53 +171,9 @@ export function MapView() {
           })
         })
 
-        fetch(`${API_BASE_URL}/occurrences`)
-          .then((r) => r.json())
-          .then((data) => {
-            if (cancelled || !mapRef.current) return
-
-            mapRef.current.addSource('occurrences', { type: 'geojson', data })
-
-            mapRef.current.addLayer({
-              id: 'occurrence-point',
-              type: 'circle',
-              source: 'occurrences',
-              paint: {
-                'circle-radius': 5,
-                'circle-color': '#e8702a',
-                'circle-stroke-color': '#ffffff',
-                'circle-stroke-width': 1,
-              },
-            })
-
-            mapRef.current.on('click', 'occurrence-point', (e) => {
-              const feature = e.features?.[0]
-              if (!feature) return
-              const p = feature.properties as Record<string, unknown>
-
-              new maplibregl.Popup()
-                .setLngLat(e.lngLat)
-                .setHTML(
-                  `<strong>${p.vernacular_name ?? p.scientific_name}</strong><br/>` +
-                    `<em>${p.scientific_name}</em><br/>` +
-                    `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}<br/>` +
-                    `Position uncertainty: ~${Math.round(Number(p.coordinate_uncertainty_in_meters) / 1000)} km` +
-                    ` (aggregated per 1° grid cell)`,
-                )
-                .addTo(mapRef.current as MapLibreMap)
-            })
-
-            mapRef.current.on(
-              'mouseenter',
-              'occurrence-point',
-              () => (mapRef.current!.getCanvas().style.cursor = 'pointer'),
-            )
-            mapRef.current.on(
-              'mouseleave',
-              'occurrence-point',
-              () => (mapRef.current!.getCanvas().style.cursor = ''),
-            )
-          })
+        addOccurrenceLayer(mapRef.current as MapLibreMap)
+        readyRef.current = true
+        loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, false)
       })
     })
 
@@ -162,7 +182,13 @@ export function MapView() {
       mapRef.current?.remove()
       mapRef.current = null
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!readyRef.current || !mapRef.current) return
+    loadOccurrences(mapRef.current, selectedStudyId, true)
+  }, [selectedStudyId])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }
