@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { BATHYMETRY_TILE_URL, MAP_STYLE_URL } from '../config'
+import { API_BASE_URL, BATHYMETRY_TILE_URL, MAP_STYLE_URL } from '../config'
 import { fetchAllUnderseaFeatureNames } from '../underseaFeatures'
 
 // OpenFreeMap's vector style has no ocean-depth/elevation data (OSM doesn't map the seafloor).
@@ -106,6 +106,54 @@ export function MapView() {
             },
           })
         })
+
+        fetch(`${API_BASE_URL}/occurrences`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (cancelled || !mapRef.current) return
+
+            mapRef.current.addSource('occurrences', { type: 'geojson', data })
+
+            mapRef.current.addLayer({
+              id: 'occurrence-point',
+              type: 'circle',
+              source: 'occurrences',
+              paint: {
+                'circle-radius': 5,
+                'circle-color': '#e8702a',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 1,
+              },
+            })
+
+            mapRef.current.on('click', 'occurrence-point', (e) => {
+              const feature = e.features?.[0]
+              if (!feature) return
+              const p = feature.properties as Record<string, unknown>
+
+              new maplibregl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(
+                  `<strong>${p.vernacular_name ?? p.scientific_name}</strong><br/>` +
+                    `<em>${p.scientific_name}</em><br/>` +
+                    `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}<br/>` +
+                    `Position uncertainty: ~${Math.round(Number(p.coordinate_uncertainty_in_meters) / 1000)} km` +
+                    ` (aggregated per 1° grid cell)`,
+                )
+                .addTo(mapRef.current as MapLibreMap)
+            })
+
+            mapRef.current.on(
+              'mouseenter',
+              'occurrence-point',
+              () => (mapRef.current!.getCanvas().style.cursor = 'pointer'),
+            )
+            mapRef.current.on(
+              'mouseleave',
+              'occurrence-point',
+              () => (mapRef.current!.getCanvas().style.cursor = ''),
+            )
+          })
       })
     })
 
