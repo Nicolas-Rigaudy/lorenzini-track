@@ -1,5 +1,5 @@
 """Ingest the Ningaloo Outlook Whale Shark tracking dataset (GBIF-published, 1-degree-cell
-aggregated) into the occurrence table.
+aggregated) into the study and occurrence tables.
 
 Source: GBIF dataset 1c61952a-9c15-48cc-b3c4-f3d541e45ab2, Darwin Core Archive.
 See docs/decisions/0002-flagship-track-dataset.md for why this specific dataset was chosen.
@@ -11,13 +11,16 @@ not GPS/Argos accuracy. Run directly: python -m app.ingestion.gbif_whale_sharks
 
 import csv
 import io
+import re
 import zipfile
-from datetime import datetime
+from datetime import date, datetime
+from xml.etree import ElementTree
 
 import httpx
 
 from app.core.db import SessionLocal
 from app.models.occurrence import Occurrence
+from app.models.study import Study
 
 ARCHIVE_URL = "https://ipt.env.duke.edu/archive.do?r=zd_1298_1deg"
 
@@ -32,17 +35,66 @@ def _parse_event_date(raw: str) -> tuple[datetime | None, datetime | None]:
     return start, end
 
 
-def fetch_records() -> list[dict]:
+def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> dict:
+    root = ElementTree.fromstring(eml_bytes)
+    dataset_el = root.find(".//dataset")
+
+    title = dataset_el.findtext("title", default="").strip()
+    abstract_para = dataset_el.findtext("abstract/para", default="")
+    abstract = re.sub(r"\s+", " ", abstract_para).strip() or None
+    source_url = dataset_el.findtext("distribution/online/url")
+    rights_el = dataset_el.find("intellectualRights/para")
+    rights_text = "".join(rights_el.itertext()) if rights_el is not None else ""
+    rights_text = re.sub(r"\s+", " ", rights_text).strip()
+    published_raw = dataset_el.findtext("pubDate", default="").strip()
+    published_date = date.fromisoformat(published_raw) if published_raw else None
+
+    return {
+        "dataset_id": dataset_id,
+        "title": title,
+        "abstract": abstract,
+        "source_url": source_url,
+        "license": rights_text or None,
+        "published_date": published_date,
+    }
+
+
+def fetch_archive() -> tuple[list[dict], bytes]:
     response = httpx.get(ARCHIVE_URL, follow_redirects=True, timeout=30.0)
     response.raise_for_status()
 
     with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
         with archive.open("occurrence.txt") as f:
             reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8"), delimiter="\t")
-            return list(reader)
+            records = list(reader)
+        eml_bytes = archive.read("eml.xml")
+
+    return records, eml_bytes
 
 
-def upsert_records(records: list[dict]) -> int:
+def upsert_study(metadata: dict, rights_holder: str | None) -> Study:
+    db = SessionLocal()
+    try:
+        study = (
+            db.query(Study).filter(Study.dataset_id == metadata["dataset_id"]).one_or_none()
+        ) or Study(dataset_id=metadata["dataset_id"])
+
+        study.title = metadata["title"]
+        study.abstract = metadata["abstract"]
+        study.source_url = metadata["source_url"]
+        study.license = metadata["license"]
+        study.rights_holder = rights_holder
+        study.published_date = metadata["published_date"]
+
+        db.add(study)
+        db.commit()
+        db.refresh(study)
+        return study
+    finally:
+        db.close()
+
+
+def upsert_records(records: list[dict], study_id: int) -> int:
     db = SessionLocal()
     count = 0
     try:
@@ -58,6 +110,7 @@ def upsert_records(records: list[dict]) -> int:
             )
             occurrence = existing or Occurrence(occurrence_id=row["occurrenceID"])
 
+            occurrence.study_id = study_id
             occurrence.dataset_id = row.get("datasetID")
             occurrence.dataset_name = row.get("datasetName")
             occurrence.basis_of_record = row.get("basisOfRecord")
@@ -100,10 +153,16 @@ def _to_int(value: str | None) -> int | None:
 
 def main() -> None:
     print(f"Fetching Darwin Core Archive from {ARCHIVE_URL} ...")
-    records = fetch_records()
+    records, eml_bytes = fetch_archive()
     print(f"Parsed {len(records)} occurrence records.")
 
-    count = upsert_records(records)
+    dataset_id = records[0]["datasetID"] if records else ""
+    rights_holder = records[0].get("rightsHolder") if records else None
+    metadata = _parse_study_metadata(eml_bytes, dataset_id)
+    study = upsert_study(metadata, rights_holder)
+    print(f"Upserted study: {study.title!r} (id={study.id})")
+
+    count = upsert_records(records, study.id)
     print(f"Upserted {count} records into the occurrence table.")
 
 

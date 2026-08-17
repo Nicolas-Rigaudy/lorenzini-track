@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from geoalchemy2 import Geometry
-from sqlalchemy import DateTime, Float, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 
@@ -21,6 +21,7 @@ class Occurrence(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     occurrence_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    study_id: Mapped[int | None] = mapped_column(ForeignKey("study.id"), index=True)
     dataset_id: Mapped[str | None] = mapped_column(String)
     dataset_name: Mapped[str | None] = mapped_column(String)
     basis_of_record: Mapped[str | None] = mapped_column(String)
@@ -46,3 +47,5 @@ class Occurrence(Base):
     bibliographic_citation: Mapped[str | None] = mapped_column(String)
 
     geom: Mapped[str | None] = mapped_column(Geometry(geometry_type="POINT", srid=4326))
+
+    study: Mapped["Study"] = relationship(back_populates="occurrences")  # noqa: F821

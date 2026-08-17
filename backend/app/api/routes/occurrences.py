@@ -9,8 +9,11 @@ router = APIRouter(tags=["occurrences"])
 
 
 @router.get("/occurrences")
-def list_occurrences(db: Session = Depends(get_db)) -> dict:
-    rows = db.execute(select(Occurrence)).scalars().all()
+def list_occurrences(study_id: int | None = None, db: Session = Depends(get_db)) -> dict:
+    query = select(Occurrence)
+    if study_id is not None:
+        query = query.where(Occurrence.study_id == study_id)
+    rows = db.execute(query).scalars().all()
 
     return {
         "type": "FeatureCollection",
