@@ -1,29 +1,28 @@
-import { useEffect, useState } from 'react'
-import { API_BASE_URL } from '../config'
+import { useState } from 'react'
 import type { Study } from '../types'
 import { StudyList } from './StudyList'
 import { SpeciesList } from './SpeciesList'
 
 interface SidebarProps {
+  studies: Study[]
+  loading: boolean
   selectedStudyId: number | null
-  onSelect: (studyId: number | null) => void
+  onSelectStudy: (studyId: number | null) => void
+  selectedSpeciesName: string | null
+  onSelectSpecies: (name: string | null) => void
 }
 
 type Tab = 'studies' | 'species'
 
-export function Sidebar({ selectedStudyId, onSelect }: SidebarProps) {
-  const [studies, setStudies] = useState<Study[]>([])
-  const [loading, setLoading] = useState(true)
+export function Sidebar({
+  studies,
+  loading,
+  selectedStudyId,
+  onSelectStudy,
+  selectedSpeciesName,
+  onSelectSpecies,
+}: SidebarProps) {
   const [tab, setTab] = useState<Tab>('studies')
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/studies`)
-      .then((r) => r.json())
-      .then((data) => {
-        setStudies(data)
-        setLoading(false)
-      })
-  }, [])
 
   const tabButtonStyle = (active: boolean) => ({
     flex: 1,
@@ -75,12 +74,14 @@ export function Sidebar({ selectedStudyId, onSelect }: SidebarProps) {
       </div>
 
       {tab === 'studies' ? (
-        <StudyList studies={studies} selectedStudyId={selectedStudyId} onSelect={onSelect} />
+        <StudyList studies={studies} selectedStudyId={selectedStudyId} onSelect={onSelectStudy} />
       ) : (
         <SpeciesList
           studies={studies}
+          selectedSpeciesName={selectedSpeciesName}
+          onSelectSpecies={onSelectSpecies}
           onSelectStudy={(studyId) => {
-            onSelect(studyId)
+            onSelectStudy(studyId)
             setTab('studies')
           }}
         />

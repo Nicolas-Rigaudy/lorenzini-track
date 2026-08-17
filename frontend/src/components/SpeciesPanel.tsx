@@ -1,42 +1,28 @@
 import { useEffect, useState } from 'react'
-import { API_BASE_URL } from '../config'
 import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../species'
 
 interface SpeciesPanelProps {
-  selectedStudyId: number | null
+  speciesName: string | null
 }
 
-export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
-  const [scientificName, setScientificName] = useState<string | null>(null)
+export function SpeciesPanel({ speciesName }: SpeciesPanelProps) {
   const [summary, setSummary] = useState<SpeciesSummary | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!selectedStudyId) {
-      setScientificName(null)
-      setSummary(null)
-      return
-    }
-
-    fetch(`${API_BASE_URL}/studies/${selectedStudyId}`)
-      .then((r) => r.json())
-      .then((study) => setScientificName(study.species?.[0] ?? null))
-  }, [selectedStudyId])
-
-  useEffect(() => {
-    if (!scientificName) {
+    if (!speciesName) {
       setSummary(null)
       return
     }
 
     setLoading(true)
-    fetchSpeciesSummary(scientificName).then((result) => {
+    fetchSpeciesSummary(speciesName).then((result) => {
       setSummary(result)
       setLoading(false)
     })
-  }, [scientificName])
+  }, [speciesName])
 
-  if (!scientificName) return null
+  if (!speciesName) return null
 
   return (
     <div
@@ -62,7 +48,7 @@ export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
 
       {!loading && !summary && (
         <div style={{ padding: 16, fontSize: 13, color: 'var(--color-ink-faint)' }}>
-          No Wikipedia entry found for <em>{scientificName}</em>.
+          No Wikipedia entry found for <em>{speciesName}</em>.
         </div>
       )}
 
@@ -87,7 +73,7 @@ export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {
                 marginTop: 2,
               }}
             >
-              {scientificName}
+              {speciesName}
             </div>
 
             {summary.conservationStatus && (
