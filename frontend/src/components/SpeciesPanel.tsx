@@ -1,24 +1,9 @@
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '../config'
-import { fetchSpeciesSummary, type SpeciesSummary } from '../species'
+import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../species'
 
 interface SpeciesPanelProps {
   selectedStudyId: number | null
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  'least concern': '#4b8f3a',
-  'near threatened': '#8ea23a',
-  vulnerable: '#e0a52c',
-  endangered: '#e0632c',
-  'critically endangered': '#c62828',
-  'extinct in the wild': '#5b2b6b',
-  extinct: '#1a1a1a',
-  'data deficient': '#7a8896',
-}
-
-function statusColor(status: string): string {
-  return STATUS_COLORS[status.toLowerCase()] ?? 'var(--color-ink-faint)'
 }
 
 export function SpeciesPanel({ selectedStudyId }: SpeciesPanelProps) {

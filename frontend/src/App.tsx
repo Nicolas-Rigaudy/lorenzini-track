@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { MapView } from './components/MapView'
-import { StudyPanel } from './components/StudyPanel'
+import { Sidebar } from './components/Sidebar'
 import { Header, HEADER_HEIGHT } from './components/Header'
 import { Legend } from './components/Legend'
 import { SpeciesPanel } from './components/SpeciesPanel'
@@ -13,7 +13,7 @@ function App() {
       <Header />
       <div style={{ position: 'relative', flex: 1, height: `calc(100% - ${HEADER_HEIGHT}px)` }}>
         <MapView selectedStudyId={selectedStudyId} />
-        <StudyPanel selectedStudyId={selectedStudyId} onSelect={setSelectedStudyId} />
+        <Sidebar selectedStudyId={selectedStudyId} onSelect={setSelectedStudyId} />
         <SpeciesPanel selectedStudyId={selectedStudyId} />
         <Legend />
       </div>
