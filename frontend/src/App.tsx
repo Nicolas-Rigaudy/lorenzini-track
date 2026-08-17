@@ -3,6 +3,7 @@ import { MapView } from './components/MapView'
 import { StudyPanel } from './components/StudyPanel'
 import { Header, HEADER_HEIGHT } from './components/Header'
 import { Legend } from './components/Legend'
+import { SpeciesPanel } from './components/SpeciesPanel'
 
 function App() {
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null)
@@ -13,6 +14,7 @@ function App() {
       <div style={{ position: 'relative', flex: 1, height: `calc(100% - ${HEADER_HEIGHT}px)` }}>
         <MapView selectedStudyId={selectedStudyId} />
         <StudyPanel selectedStudyId={selectedStudyId} onSelect={setSelectedStudyId} />
+        <SpeciesPanel selectedStudyId={selectedStudyId} />
         <Legend />
       </div>
     </div>
