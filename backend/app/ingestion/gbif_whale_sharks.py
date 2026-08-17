@@ -41,6 +41,7 @@ def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> dict:
 
     title = dataset_el.findtext("title", default="").strip()
     abstract_para = dataset_el.findtext("abstract/para", default="")
+    abstract_para = re.sub(r"<[^>]+>", "", abstract_para)  # strip embedded HTML (e.g. <a> links)
     abstract = re.sub(r"\s+", " ", abstract_para).strip() or None
     source_url = dataset_el.findtext("distribution/online/url")
     rights_el = dataset_el.find("intellectualRights/para")
