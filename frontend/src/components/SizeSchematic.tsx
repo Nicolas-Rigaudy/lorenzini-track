@@ -15,6 +15,8 @@ export function SizeSchematic({ maxLengthM, label, color = 'var(--color-brand-li
     { name: 'Human', m: HUMAN_M, fill: '#9fb2bd' },
     { name: label, m: maxLengthM, fill: color },
   ]
+  // Scale by the larger bar so a species shorter than a human doesn't overflow the track.
+  const scaleMax = Math.max(maxLengthM, HUMAN_M)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {rows.map((row) => (
@@ -25,7 +27,7 @@ export function SizeSchematic({ maxLengthM, label, color = 'var(--color-brand-li
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                width: `${Math.max(2, (row.m / maxLengthM) * 100)}%`,
+                width: `${Math.max(2, (row.m / scaleMax) * 100)}%`,
                 height: 12,
                 background: row.fill,
                 borderRadius: 3,
