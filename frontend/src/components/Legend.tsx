@@ -44,7 +44,7 @@ export function Legend({ species, speciesColors }: LegendProps) {
         </div>
       ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--color-border)' }}>
-        <span style={{ width: 10, height: 0, borderTop: '2px solid var(--color-ink-faint)', flexShrink: 0 }} />
+        <span style={{ width: 16, height: 3, borderRadius: 2, background: 'linear-gradient(90deg,#ffd166,#06d6a0,#4cc9f0)', flexShrink: 0 }} />
         Tracked path (per individual)
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>

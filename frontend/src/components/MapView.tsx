@@ -72,8 +72,22 @@ interface OccFeature {
   properties: Record<string, unknown>
 }
 
-// Connect each organism's fixes into a chronological LineString. Only organisms with 2+
-// fixes produce a track (so aggregated single-cell datasets stay as plain points).
+// A distinct per-individual palette (not the species palette) so two animals of the same
+// species are visually separable. Bright, high-contrast, no orange.
+const TRACK_COLORS = [
+  '#ffd166',
+  '#06d6a0',
+  '#ef476f',
+  '#4cc9f0',
+  '#b892ff',
+  '#c5f06d',
+  '#f15bb5',
+  '#5e8bff',
+]
+
+// Connect each organism's fixes into a chronological LineString, coloured per individual.
+// Only organisms with 2+ fixes produce a track (so aggregated single-cell datasets stay
+// as plain points).
 function buildTracks(features: OccFeature[]) {
   const byOrganism = new Map<string, OccFeature[]>()
   for (const f of features) {
@@ -82,29 +96,52 @@ function buildTracks(features: OccFeature[]) {
     if (!byOrganism.has(org)) byOrganism.set(org, [])
     byOrganism.get(org)!.push(f)
   }
-  const lines = []
-  for (const [org, pts] of byOrganism) {
-    if (pts.length < 2) continue
+  const orgs = [...byOrganism.keys()].sort()
+  const lines = orgs.flatMap((org, i) => {
+    const pts = byOrganism.get(org)!
+    if (pts.length < 2) return []
     pts.sort((a, b) =>
       String(a.properties.event_date_start).localeCompare(String(b.properties.event_date_start)),
     )
-    lines.push({
-      type: 'Feature' as const,
-      geometry: { type: 'LineString' as const, coordinates: pts.map((p) => p.geometry.coordinates) },
-      properties: { scientific_name: pts[0].properties.scientific_name, organism_id: org },
-    })
-  }
+    return [
+      {
+        type: 'Feature' as const,
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: pts.map((p) => p.geometry.coordinates),
+        },
+        properties: { organism_id: org, track_color: TRACK_COLORS[i % TRACK_COLORS.length] },
+      },
+    ]
+  })
   return { type: 'FeatureCollection' as const, features: lines }
 }
 
 function addOccurrenceLayers(map: MapLibreMap, onPointClick: (studyId: number) => void) {
   map.addSource('tracks', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+  // A wider casing beneath each track gives it contrast against the map and against other
+  // crossing tracks; the coloured line on top is per-individual.
+  map.addLayer({
+    id: 'occurrence-track-casing',
+    type: 'line',
+    source: 'tracks',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-color': 'rgba(255,255,255,0.75)',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 2, 4, 7, 8],
+      'line-opacity': 0.7,
+    },
+  })
   map.addLayer({
     id: 'occurrence-track',
     type: 'line',
     source: 'tracks',
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': '#9fb2bd', 'line-width': 1.5, 'line-opacity': 0.5 },
+    paint: {
+      'line-color': ['get', 'track_color'],
+      'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2, 7, 4.5],
+      'line-opacity': 0.95,
+    },
   })
 
   map.addSource('occurrences', {
@@ -116,10 +153,12 @@ function addOccurrenceLayers(map: MapLibreMap, onPointClick: (studyId: number) =
     type: 'circle',
     source: 'occurrences',
     paint: {
-      'circle-radius': 5,
+      // Smaller when zoomed out so the underlying tracks stay visible; larger up close.
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 3, 7, 5.5],
       'circle-color': '#9fb2bd',
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 1,
+      'circle-opacity': 0.9,
     },
   })
 
@@ -211,6 +250,13 @@ function applyMapTheme(map: MapLibreMap, theme: 'light' | 'dark') {
   if (map.getLayer('undersea-feature-point')) {
     map.setPaintProperty('undersea-feature-point', 'circle-color', dark ? '#7fb2c6' : '#0d3a52')
   }
+  if (map.getLayer('occurrence-track-casing')) {
+    map.setPaintProperty(
+      'occurrence-track-casing',
+      'line-color',
+      dark ? 'rgba(6,20,28,0.85)' : 'rgba(255,255,255,0.8)',
+    )
+  }
 }
 
 function colorExpression(speciesColors: Record<string, string>): maplibregl.ExpressionSpecification | string {
@@ -299,7 +345,6 @@ export function MapView({
 
         addOccurrenceLayers(mapRef.current as MapLibreMap, (id) => selectStudyRef.current(id))
         mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
-        mapRef.current.setPaintProperty('occurrence-track', 'line-color', colorExpression(colorsRef.current))
         applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         applyYearFilter(mapRef.current as MapLibreMap, rangeRef.current)
         readyRef.current = true
@@ -324,9 +369,7 @@ export function MapView({
     colorsRef.current = speciesColors
     const map = mapRef.current
     if (!readyRef.current || !map || !map.getLayer('occurrence-point')) return
-    const expr = colorExpression(speciesColors)
-    map.setPaintProperty('occurrence-point', 'circle-color', expr)
-    map.setPaintProperty('occurrence-track', 'line-color', expr)
+    map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(speciesColors))
   }, [speciesColors])
 
   useEffect(() => {
