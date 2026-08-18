@@ -9,10 +9,16 @@ router = APIRouter(tags=["occurrences"])
 
 
 @router.get("/occurrences")
-def list_occurrences(study_id: int | None = None, db: Session = Depends(get_db)) -> dict:
+def list_occurrences(
+    study_id: int | None = None,
+    scientific_name: str | None = None,
+    db: Session = Depends(get_db),
+) -> dict:
     query = select(Occurrence)
     if study_id is not None:
         query = query.where(Occurrence.study_id == study_id)
+    if scientific_name is not None:
+        query = query.where(Occurrence.scientific_name == scientific_name)
     rows = db.execute(query).scalars().all()
 
     return {
