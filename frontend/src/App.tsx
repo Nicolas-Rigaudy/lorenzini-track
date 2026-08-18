@@ -15,6 +15,16 @@ function App() {
   const [speciesList, setSpeciesList] = useState<SpeciesListItem[]>([])
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null)
   const [selectedSpeciesName, setSelectedSpeciesName] = useState<string | null>(null)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('poseidon-theme')
+    if (saved === 'light' || saved === 'dark') return saved
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('poseidon-theme', theme)
+  }, [theme])
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/studies`)
@@ -52,12 +62,13 @@ function App() {
 
   return (
     <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Header />
+      <Header theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
       <div style={{ position: 'relative', flex: 1, height: `calc(100% - ${HEADER_HEIGHT}px)` }}>
         <MapView
           selectedStudyId={selectedStudyId}
           selectedSpeciesName={selectedSpeciesName}
           speciesColors={speciesColors}
+          theme={theme}
         />
         <StudiesPanel
           studies={studies}

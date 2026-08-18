@@ -23,6 +23,26 @@
   --shadow-panel: 0 2px 14px rgba(15, 36, 54, 0.22);
 }
 
+/* Dark mode — an "ocean night" palette. Panels flip; the map stays a light chart
+   surface (standard for geospatial tools) but its wash/labels are darkened in JS. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-ink: #e7eef3;
+  --color-ink-soft: #a7bfcc;
+  --color-ink-faint: #7791a0;
+  --color-surface: #10222e;
+  --color-surface-alt: #0b1a24;
+  --color-border: #26404e;
+
+  --color-brand: #0b3547;
+  --color-brand-light: #40a9cd;
+  --color-accent-soft: rgba(64, 169, 205, 0.16);
+  --color-ring: #40a9cd;
+
+  --shadow-panel: 0 2px 16px rgba(0, 0, 0, 0.45);
+}
+
 html,
 body,
 #root {
@@ -130,6 +150,10 @@ a {
   background: linear-gradient(100deg, var(--color-surface-alt) 30%, #e9f0f4 50%, var(--color-surface-alt) 70%);
   background-size: 200% 100%;
   animation: po-shimmer 1.3s ease-in-out infinite;
+}
+:root[data-theme='dark'] .po-skel {
+  background: linear-gradient(100deg, var(--color-surface-alt) 30%, #1b3040 50%, var(--color-surface-alt) 70%);
+  background-size: 200% 100%;
 }
 @keyframes po-shimmer {
   from {

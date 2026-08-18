@@ -145,6 +145,32 @@ interface MapViewProps {
   selectedStudyId: number | null
   selectedSpeciesName: string | null
   speciesColors: Record<string, string>
+  theme: 'light' | 'dark'
+}
+
+// The base map is a fixed raster; in dark mode we deepen the ocean wash and flip the
+// undersea-feature label/point colours so the chart reads as "ocean night".
+function applyMapTheme(map: MapLibreMap, theme: 'light' | 'dark') {
+  const dark = theme === 'dark'
+  if (map.getLayer('bathymetry-blue-wash')) {
+    map.setPaintProperty('bathymetry-blue-wash', 'background-color', dark ? '#05141d' : '#0f4c66')
+    map.setPaintProperty('bathymetry-blue-wash', 'background-opacity', dark ? 0.58 : 0.28)
+  }
+  if (map.getLayer('bathymetry')) {
+    map.setPaintProperty('bathymetry', 'raster-saturation', dark ? -0.45 : -0.3)
+    map.setPaintProperty('bathymetry', 'raster-brightness-max', dark ? 0.72 : 1)
+  }
+  if (map.getLayer('undersea-feature-label')) {
+    map.setPaintProperty('undersea-feature-label', 'text-color', dark ? '#bcd6e2' : '#0d3a52')
+    map.setPaintProperty(
+      'undersea-feature-label',
+      'text-halo-color',
+      dark ? 'rgba(4,18,26,0.9)' : 'rgba(255,255,255,0.95)',
+    )
+  }
+  if (map.getLayer('undersea-feature-point')) {
+    map.setPaintProperty('undersea-feature-point', 'circle-color', dark ? '#7fb2c6' : '#0d3a52')
+  }
 }
 
 function colorExpression(speciesColors: Record<string, string>): maplibregl.ExpressionSpecification | string {
@@ -158,11 +184,12 @@ function colorExpression(speciesColors: Record<string, string>): maplibregl.Expr
   ] as maplibregl.ExpressionSpecification
 }
 
-export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors }: MapViewProps) {
+export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors, theme }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const readyRef = useRef(false)
   const colorsRef = useRef(speciesColors)
+  const themeRef = useRef(theme)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -216,10 +243,13 @@ export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors }:
               'text-halo-width': 1.8,
             },
           })
+
+          applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         })
 
         addOccurrenceLayer(mapRef.current as MapLibreMap)
         mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
+        applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         readyRef.current = true
         loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
       })
@@ -244,6 +274,11 @@ export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors }:
     if (!readyRef.current || !map || !map.getLayer('occurrence-point')) return
     map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(speciesColors))
   }, [speciesColors])
+
+  useEffect(() => {
+    themeRef.current = theme
+    if (readyRef.current && mapRef.current) applyMapTheme(mapRef.current, theme)
+  }, [theme])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }

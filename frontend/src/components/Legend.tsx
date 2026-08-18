@@ -44,7 +44,7 @@ export function Legend({ species, speciesColors }: LegendProps) {
         </div>
       ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--color-border)' }}>
-        <span style={{ width: 10, display: 'inline-flex', justifyContent: 'center', fontStyle: 'italic', color: '#0d3a52', fontSize: 12 }}>
+        <span style={{ width: 10, display: 'inline-flex', justifyContent: 'center', fontStyle: 'italic', color: 'var(--color-ink-faint)', fontSize: 12 }}>
           Aa
         </span>
         Named undersea feature

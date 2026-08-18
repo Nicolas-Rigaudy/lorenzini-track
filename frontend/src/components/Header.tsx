@@ -2,7 +2,12 @@ import { Icon } from './Icon'
 
 export const HEADER_HEIGHT = 56
 
-export function Header() {
+interface HeaderProps {
+  theme: 'light' | 'dark'
+  onToggleTheme: () => void
+}
+
+export function Header({ theme, onToggleTheme }: HeaderProps) {
   return (
     <header
       style={{
@@ -39,20 +44,41 @@ export function Header() {
           Marine Wildlife &amp; Telemetry Explorer
         </span>
       </div>
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 0.4,
-          textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.7)',
-          border: '1px solid rgba(255,255,255,0.25)',
-          borderRadius: 999,
-          padding: '3px 10px',
-        }}
-      >
-        Research preview
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={onToggleTheme}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            cursor: 'pointer',
+            color: '#fff',
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.2)',
+          }}
+        >
+          <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} />
+        </button>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: 0.4,
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.7)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: 999,
+            padding: '3px 10px',
+          }}
+        >
+          Research preview
+        </span>
+      </div>
     </header>
   )
 }
