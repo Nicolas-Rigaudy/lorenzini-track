@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Study } from '../types'
 import { StudyList } from './StudyList'
+import { Icon } from './Icon'
 
 interface StudiesPanelProps {
   studies: Study[]
@@ -34,23 +35,17 @@ export function StudiesPanel({ studies, loading, selectedStudyId, onSelectStudy 
         <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--color-brand-light)' }}>
           {loading ? 'Studies' : `Studies · ${studies.length}`}
         </div>
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search studies…"
-          style={{
-            width: '100%',
-            padding: '7px 10px',
-            marginTop: 9,
-            fontSize: 13,
-            fontFamily: 'var(--font-sans)',
-            color: 'var(--color-ink)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 9,
-            outline: 'none',
-          }}
-        />
+        <div className="po-searchwrap" style={{ marginTop: 9 }}>
+          <Icon name="search" size={15} />
+          <input
+            className="po-input"
+            type="search"
+            aria-label="Search studies"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search studies…"
+          />
+        </div>
       </div>
       <StudyList studies={studies} selectedStudyId={selectedStudyId} onSelect={onSelectStudy} search={search} />
     </div>

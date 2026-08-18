@@ -4,6 +4,21 @@ import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../specie
 import { fetchSpeciesDetail, type SpeciesDetail } from '../speciesApi'
 import { SizeSchematic } from './SizeSchematic'
 import { Histogram } from './Histogram'
+import { Icon } from './Icon'
+
+function cardKeyProps(onActivate: () => void) {
+  return {
+    role: 'button',
+    tabIndex: 0,
+    onClick: onActivate,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        onActivate()
+      }
+    },
+  }
+}
 
 interface SpeciesProfileProps {
   scientificName: string
@@ -55,17 +70,29 @@ export function SpeciesProfile({
           borderBottom: '1px solid var(--color-border)',
         }}
       >
-        <div
+        <button
           onClick={onBack}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', ...label }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: 'pointer',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            ...label,
+          }}
         >
-          ← All species
-        </div>
+          <Icon name="back" size={14} />
+          All species
+        </button>
       </div>
 
       <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
         {/* Hero */}
         <div
+          role="img"
+          aria-label={`Photograph of ${facts?.common_name ?? scientificName}`}
           style={{
             position: 'relative',
             height: 172,
@@ -125,7 +152,7 @@ export function SpeciesProfile({
 
           {/* Size */}
           {facts?.max_length_m && (
-            <Section title="📏 Size">
+            <Section icon="ruler" title="Size">
               <div style={{ background: 'var(--color-surface-alt)', borderRadius: 10, padding: '12px 12px 6px' }}>
                 <SizeSchematic
                   maxLengthM={facts.max_length_m}
@@ -145,18 +172,18 @@ export function SpeciesProfile({
 
           {/* Habitat */}
           {facts && (facts.depth_max_m || facts.diet || facts.distribution) && (
-            <Section title="🌐 Habitat & biology">
-              <FactRow icon="🌊" k="Depth" v={depthText(facts.depth_min_m, facts.depth_max_m)} />
-              <FactRow icon="🌡️" k="Water" v={tempText(facts.temp_min_c, facts.temp_max_c)} />
-              <FactRow icon="🍽️" k="Diet" v={joinDiet(facts.diet, facts.feeding)} />
-              <FactRow icon="🗺️" k="Range" v={facts.distribution} />
-              <FactRow icon="⏳" k="Lifespan" v={facts.lifespan_years ? `up to ${facts.lifespan_years} years` : null} />
+            <Section icon="globe" title="Habitat & biology">
+              <FactRow k="Depth" v={depthText(facts.depth_min_m, facts.depth_max_m)} />
+              <FactRow k="Water" v={tempText(facts.temp_min_c, facts.temp_max_c)} />
+              <FactRow k="Diet" v={joinDiet(facts.diet, facts.feeding)} />
+              <FactRow k="Range" v={facts.distribution} />
+              <FactRow k="Lifespan" v={facts.lifespan_years ? `up to ${facts.lifespan_years} years` : null} />
             </Section>
           )}
 
           {/* Taxonomy */}
           {facts && (facts.taxon_family || facts.taxon_order) && (
-            <Section title="🧬 Taxonomy">
+            <Section icon="taxonomy" title="Taxonomy">
               <FactRow k="Class" v={facts.taxon_class} />
               <FactRow k="Order" v={facts.taxon_order} />
               <FactRow k="Family" v={facts.taxon_family} />
@@ -165,37 +192,44 @@ export function SpeciesProfile({
 
           {/* About */}
           {summary?.extract && (
-            <Section title="📖 About">
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--color-ink-soft)', lineHeight: 1.5 }}>
+            <Section icon="book" title="About">
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--color-ink-soft)', lineHeight: 1.55 }}>
                 {summary.extract}
-                {summary.pageUrl && (
-                  <>
-                    {' '}
-                    <a href={summary.pageUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-brand-light)', fontWeight: 600 }}>
-                      Read more →
-                    </a>
-                  </>
-                )}
               </p>
+              {summary.pageUrl && (
+                <a
+                  href={summary.pageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="po-link"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 12.5 }}
+                >
+                  Read more on Wikipedia
+                  <Icon name="external" size={13} />
+                </a>
+              )}
             </Section>
           )}
 
           {/* Histogram */}
           {detail && (
-            <Section title="🛰️ Detections by month">
+            <Section icon="activity" title="Detections by month">
               <Histogram values={detail.monthly_histogram} />
             </Section>
           )}
 
           {/* Studies */}
-          <Section title={`🔬 Tracking studies · ${studiesForSpecies.length}`}>
+          <Section icon="flask" title={`Tracking studies · ${studiesForSpecies.length}`}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {studiesForSpecies.map((study) => {
                 const active = study.id === selectedStudyId
                 return (
                   <div
                     key={study.id}
-                    onClick={() => onSelectStudy(active ? null : study.id)}
+                    className="po-card"
+                    aria-pressed={active}
+                    aria-label={`${study.title}. ${active ? 'Showing on map' : 'Focus map on this study'}`}
+                    {...cardKeyProps(() => onSelectStudy(active ? null : study.id))}
                     style={{
                       display: 'flex',
                       gap: 10,
@@ -204,11 +238,12 @@ export function SpeciesProfile({
                       borderLeft: active ? '3px solid var(--color-brand-light)' : '3px solid var(--color-border)',
                       borderRadius: 10,
                       padding: 8,
-                      cursor: 'pointer',
                       background: active ? 'var(--color-accent-soft)' : 'var(--color-surface)',
                     }}
                   >
                     <div
+                      role="img"
+                      aria-label=""
                       style={{
                         width: 52,
                         height: 42,
@@ -243,16 +278,19 @@ export function SpeciesProfile({
 function Tile({ value, label: l }: { value: string; label: string }) {
   return (
     <div style={{ background: 'var(--color-surface-alt)', borderRadius: 10, padding: '9px 4px', textAlign: 'center' }}>
-      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-brand)' }}>{value}</div>
-      <div style={{ fontSize: 10, color: 'var(--color-ink-faint)', marginTop: 1 }}>{l}</div>
+      <div className="tnum" style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-brand)' }}>{value}</div>
+      <div style={{ fontSize: 10, color: 'var(--color-ink-faint)', marginTop: 2 }}>{l}</div>
     </div>
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ icon, title, children }: { icon?: string; title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: 18 }}>
-      <div style={label}>{title}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, ...label }}>
+        {icon && <Icon name={icon} size={13} />}
+        {title}
+      </div>
       <div style={{ marginTop: 8 }}>{children}</div>
     </div>
   )

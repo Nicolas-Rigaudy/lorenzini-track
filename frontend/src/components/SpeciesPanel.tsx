@@ -4,6 +4,7 @@ import type { SpeciesListItem } from '../speciesApi'
 import { speciesColor } from '../speciesColors'
 import { SpeciesGallery } from './SpeciesGallery'
 import { SpeciesProfile } from './SpeciesProfile'
+import { Icon } from './Icon'
 
 interface SpeciesPanelProps {
   speciesList: SpeciesListItem[]
@@ -59,23 +60,17 @@ export function SpeciesPanel({
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--color-brand-light)' }}>
               Species · {speciesList.length}
             </div>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search species…"
-              style={{
-                width: '100%',
-                padding: '7px 10px',
-                marginTop: 9,
-                fontSize: 13,
-                fontFamily: 'var(--font-sans)',
-                color: 'var(--color-ink)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 9,
-                outline: 'none',
-              }}
-            />
+            <div className="po-searchwrap" style={{ marginTop: 9 }}>
+              <Icon name="search" size={15} />
+              <input
+                className="po-input"
+                type="search"
+                aria-label="Search species"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search species…"
+              />
+            </div>
           </div>
           <SpeciesGallery
             species={speciesList}

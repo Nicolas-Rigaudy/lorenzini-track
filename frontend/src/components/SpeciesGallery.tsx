@@ -35,6 +35,18 @@ export function SpeciesGallery({ species, speciesColors, search, onSelect }: Spe
     )
   })
 
+  if (species.length === 0) {
+    return (
+      <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="po-skel" style={{ height: 148, borderRadius: 12 }} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 14 }}>
       <div style={{ fontSize: 12, color: 'var(--color-ink-faint)', margin: '0 2px 10px' }}>
@@ -48,17 +60,28 @@ export function SpeciesGallery({ species, speciesColors, search, onSelect }: Spe
           return (
             <div
               key={s.scientific_name}
+              className="po-card"
+              role="button"
+              tabIndex={0}
+              aria-label={`Open profile for ${s.common_name ?? summary?.title ?? s.scientific_name}`}
               onClick={() => onSelect(s.scientific_name)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSelect(s.scientific_name)
+                }
+              }}
               style={{
                 border: '1px solid var(--color-border)',
                 borderTop: `3px solid ${speciesColors[s.scientific_name] ?? 'var(--color-border)'}`,
                 borderRadius: 12,
                 overflow: 'hidden',
-                cursor: 'pointer',
                 background: 'var(--color-surface)',
               }}
             >
               <div
+                role="img"
+                aria-label={`Photograph of ${s.common_name ?? s.scientific_name}`}
                 style={{
                   height: 82,
                   position: 'relative',

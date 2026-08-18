@@ -1,19 +1,26 @@
 :root {
   color-scheme: light;
 
-  --color-ink: #0f2436;
+  /* Neutrals — slightly blue-biased so they read as chosen, not default grey */
+  --color-ink: #0e2333;
   --color-ink-soft: #3a5468;
   --color-ink-faint: #6b8496;
   --color-surface: #ffffff;
-  --color-surface-alt: #f4f8fa;
-  --color-border: #d7e2e8;
-  --color-accent: #e8702a;
-  --color-accent-soft: #e5f1f6;
+  --color-surface-alt: #f2f7fa;
+  --color-border: #d6e2e9;
+
+  /* Brand (deep ocean → teal) */
   --color-brand: #0f4c66;
   --color-brand-light: #1a7fa3;
+  --color-accent-soft: #e5f1f6;
+  --color-ring: #1a7fa3;
 
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Type */
+  --font-sans: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --radius: 10px;
+  --shadow-panel: 0 2px 14px rgba(15, 36, 54, 0.22);
 }
 
 html,
@@ -25,6 +32,8 @@ body,
   width: 100%;
   font-family: var(--font-sans);
   color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -32,5 +41,114 @@ body,
 }
 
 a {
-  color: var(--color-brand);
+  color: var(--color-brand-light);
+}
+
+/* Numbers that line up in columns / stats read better monospaced-tabular */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Keyboard focus — always visible, never removed without replacement */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Interactive list rows: a subtle overlay tint on hover that never fights an inline
+   background (uses an inset shadow rather than background-color). */
+.po-row {
+  cursor: pointer;
+  transition: box-shadow 160ms ease;
+}
+.po-row:hover {
+  box-shadow: inset 0 0 0 999px rgba(26, 127, 163, 0.06);
+}
+
+/* Cards lift slightly on hover */
+.po-card {
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+.po-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 36, 54, 0.16);
+}
+
+/* Search inputs */
+.po-input {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.po-input::placeholder {
+  color: var(--color-ink-faint);
+}
+.po-input:focus {
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.po-searchwrap {
+  position: relative;
+}
+.po-searchwrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-ink-faint);
+  pointer-events: none;
+}
+
+/* Text links with an underline-on-hover affordance */
+.po-link {
+  color: var(--color-brand-light);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.po-link:hover {
+  text-decoration: underline;
+}
+
+/* Loading skeleton */
+.po-skel {
+  background: linear-gradient(100deg, var(--color-surface-alt) 30%, #e9f0f4 50%, var(--color-surface-alt) 70%);
+  background-size: 200% 100%;
+  animation: po-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes po-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .po-card:hover {
+    transform: none;
+  }
 }

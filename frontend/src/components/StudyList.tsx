@@ -29,14 +29,24 @@ export function StudyList({ studies, selectedStudyId, onSelect, search }: StudyL
     <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
       {filtered.map((study) => {
         const isSelected = study.id === selectedStudyId
+        const activate = () => onSelect(isSelected ? null : study.id)
         return (
           <div
             key={study.id}
-            onClick={() => onSelect(isSelected ? null : study.id)}
+            className="po-row"
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected}
+            onClick={activate}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                activate()
+              }
+            }}
             style={{
               padding: '12px 16px',
               borderBottom: '1px solid var(--color-border)',
-              cursor: 'pointer',
               background: isSelected ? 'var(--color-accent-soft)' : 'transparent',
               borderLeft: isSelected
                 ? '3px solid var(--color-brand-light)'
