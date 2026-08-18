@@ -67,12 +67,50 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
 }
 
-function addOccurrenceLayer(map: MapLibreMap) {
+interface OccFeature {
+  geometry: { coordinates: [number, number] }
+  properties: Record<string, unknown>
+}
+
+// Connect each organism's fixes into a chronological LineString. Only organisms with 2+
+// fixes produce a track (so aggregated single-cell datasets stay as plain points).
+function buildTracks(features: OccFeature[]) {
+  const byOrganism = new Map<string, OccFeature[]>()
+  for (const f of features) {
+    const org = f.properties?.organism_id
+    if (typeof org !== 'string' || !org) continue
+    if (!byOrganism.has(org)) byOrganism.set(org, [])
+    byOrganism.get(org)!.push(f)
+  }
+  const lines = []
+  for (const [org, pts] of byOrganism) {
+    if (pts.length < 2) continue
+    pts.sort((a, b) =>
+      String(a.properties.event_date_start).localeCompare(String(b.properties.event_date_start)),
+    )
+    lines.push({
+      type: 'Feature' as const,
+      geometry: { type: 'LineString' as const, coordinates: pts.map((p) => p.geometry.coordinates) },
+      properties: { scientific_name: pts[0].properties.scientific_name, organism_id: org },
+    })
+  }
+  return { type: 'FeatureCollection' as const, features: lines }
+}
+
+function addOccurrenceLayers(map: MapLibreMap, onPointClick: (studyId: number) => void) {
+  map.addSource('tracks', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+  map.addLayer({
+    id: 'occurrence-track',
+    type: 'line',
+    source: 'tracks',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#9fb2bd', 'line-width': 1.5, 'line-opacity': 0.5 },
+  })
+
   map.addSource('occurrences', {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
   })
-
   map.addLayer({
     id: 'occurrence-point',
     type: 'circle',
@@ -86,27 +124,9 @@ function addOccurrenceLayer(map: MapLibreMap) {
   })
 
   map.on('click', 'occurrence-point', (e) => {
-    const feature = e.features?.[0]
-    if (!feature) return
-    const p = feature.properties as Record<string, unknown>
-
-    const uncM = Number(p.coordinate_uncertainty_in_meters)
-    const uncertainty =
-      Number.isFinite(uncM) && uncM > 0
-        ? `<br/>Position uncertainty: ~${uncM >= 1000 ? `${Math.round(uncM / 1000)} km` : `${Math.round(uncM)} m`}`
-        : ''
-
-    new maplibregl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML(
-        `<strong>${p.vernacular_name ?? p.scientific_name}</strong><br/>` +
-          `<em>${p.scientific_name}</em><br/>` +
-          `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}` +
-          uncertainty,
-      )
-      .addTo(map)
+    const p = e.features?.[0]?.properties
+    if (p && p.study_id != null) onPointClick(Number(p.study_id))
   })
-
   map.on('mouseenter', 'occurrence-point', () => (map.getCanvas().style.cursor = 'pointer'))
   map.on('mouseleave', 'occurrence-point', () => (map.getCanvas().style.cursor = ''))
 }
@@ -135,6 +155,9 @@ async function loadOccurrences(
   const source = map.getSource('occurrences') as maplibregl.GeoJSONSource | undefined
   source?.setData(data)
 
+  const trackSource = map.getSource('tracks') as maplibregl.GeoJSONSource | undefined
+  trackSource?.setData(buildTracks(data.features))
+
   if (flyTo && data.features.length > 0) {
     const lons = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[0])
     const lats = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[1])
@@ -154,6 +177,7 @@ interface MapViewProps {
   speciesColors: Record<string, string>
   theme: 'light' | 'dark'
   yearRange: [number, number] | null
+  onSelectStudy: (studyId: number) => void
 }
 
 function applyYearFilter(map: MapLibreMap, range: [number, number] | null) {
@@ -206,6 +230,7 @@ export function MapView({
   speciesColors,
   theme,
   yearRange,
+  onSelectStudy,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -213,6 +238,8 @@ export function MapView({
   const colorsRef = useRef(speciesColors)
   const themeRef = useRef(theme)
   const rangeRef = useRef(yearRange)
+  const selectStudyRef = useRef(onSelectStudy)
+  selectStudyRef.current = onSelectStudy
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -270,8 +297,9 @@ export function MapView({
           applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         })
 
-        addOccurrenceLayer(mapRef.current as MapLibreMap)
+        addOccurrenceLayers(mapRef.current as MapLibreMap, (id) => selectStudyRef.current(id))
         mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
+        mapRef.current.setPaintProperty('occurrence-track', 'line-color', colorExpression(colorsRef.current))
         applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         applyYearFilter(mapRef.current as MapLibreMap, rangeRef.current)
         readyRef.current = true
@@ -296,7 +324,9 @@ export function MapView({
     colorsRef.current = speciesColors
     const map = mapRef.current
     if (!readyRef.current || !map || !map.getLayer('occurrence-point')) return
-    map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(speciesColors))
+    const expr = colorExpression(speciesColors)
+    map.setPaintProperty('occurrence-point', 'circle-color', expr)
+    map.setPaintProperty('occurrence-track', 'line-color', expr)
   }, [speciesColors])
 
   useEffect(() => {

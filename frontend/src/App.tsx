@@ -91,6 +91,7 @@ function App() {
           speciesColors={speciesColors}
           theme={theme}
           yearRange={yearRange}
+          onSelectStudy={selectStudy}
         />
         <StudiesPanel
           studies={studies}
