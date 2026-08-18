@@ -55,25 +55,24 @@ SPECIES_FACTS: dict[str, SpeciesFacts] = {
         "habitat": "Highly migratory; open ocean and coastal shelves, often near seasonal "
         "plankton blooms such as coral spawning.",
     },
-    "Manta birostris": {
-        "common_name": "Giant oceanic manta ray",
+    "Mobula mobular": {
+        "common_name": "Giant devil ray",
         "taxon_class": "Chondrichthyes",
         "taxon_order": "Myliobatiformes",
         "taxon_family": "Mobulidae",
         "body_plan": "ray",
-        "max_length_m": 7.0,  # disc width (wingspan)
-        "typical_length_m": 4.5,
-        "max_weight_kg": 3000,
-        "lifespan_years": 40,
+        "max_length_m": 5.2,  # disc width (wingspan)
+        "typical_length_m": 3.0,
+        "max_weight_kg": 400,
+        "lifespan_years": 20,
         "depth_min_m": 0,
-        "depth_max_m": 1000,
-        "temp_min_c": 19,
-        "temp_max_c": 30,
-        "diet": "Zooplankton",
+        "depth_max_m": 700,
+        "temp_min_c": 16,
+        "temp_max_c": 26,
+        "diet": "Zooplankton and small schooling fish",
         "feeding": "Filter feeder",
-        "distribution": "Circumglobal in tropical, subtropical and warm-temperate oceans",
-        "habitat": "Oceanic and migratory, with seasonal aggregations at coastal feeding "
-        "and cleaning sites.",
+        "distribution": "Mediterranean Sea and warm-temperate to tropical oceans worldwide",
+        "habitat": "Pelagic and deep-diving, often travelling in large schools.",
     },
     "Negaprion brevirostris": {
         "common_name": "Lemon shark",
