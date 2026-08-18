@@ -145,6 +145,60 @@ a {
   text-decoration: underline;
 }
 
+/* Dual-thumb year range slider */
+.po-dual {
+  position: relative;
+  height: 24px;
+}
+.po-dual .track {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+.po-dual .fill {
+  position: absolute;
+  top: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-brand-light);
+}
+.po-dual input[type='range'] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.po-dual input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-brand-light);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.po-dual input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-brand-light);
+  border: 2px solid var(--color-surface);
+  cursor: pointer;
+}
+
 /* Loading skeleton */
 .po-skel {
   background: linear-gradient(100deg, var(--color-surface-alt) 30%, #e9f0f4 50%, var(--color-surface-alt) 70%);

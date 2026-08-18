@@ -30,9 +30,16 @@ export interface SpeciesListItem {
   date_range: { start: string | null; end: string | null }
 }
 
+export interface YearCount {
+  year: number
+  count: number
+}
+
 export interface SpeciesDetail extends SpeciesListItem {
   facts: SpeciesFacts | null
   monthly_histogram: number[]
+  yearly_histogram: YearCount[]
+  tag_count: number
   study_ids: number[]
 }
 

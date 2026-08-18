@@ -125,6 +125,13 @@ async function loadOccurrences(
   }
   const data = await fetch(url).then((r) => r.json())
 
+  // Stamp a numeric year on each feature so the time slider can filter with a fast
+  // map expression instead of re-fetching.
+  for (const f of data.features) {
+    const d = f.properties?.event_date_start
+    f.properties.year = d ? Number(String(d).slice(0, 4)) : null
+  }
+
   const source = map.getSource('occurrences') as maplibregl.GeoJSONSource | undefined
   source?.setData(data)
 
@@ -146,6 +153,15 @@ interface MapViewProps {
   selectedSpeciesName: string | null
   speciesColors: Record<string, string>
   theme: 'light' | 'dark'
+  yearRange: [number, number] | null
+}
+
+function applyYearFilter(map: MapLibreMap, range: [number, number] | null) {
+  if (!map.getLayer('occurrence-point')) return
+  map.setFilter(
+    'occurrence-point',
+    range ? ['all', ['>=', ['get', 'year'], range[0]], ['<=', ['get', 'year'], range[1]]] : null,
+  )
 }
 
 // The base map is a fixed raster; in dark mode we deepen the ocean wash and flip the
@@ -184,12 +200,19 @@ function colorExpression(speciesColors: Record<string, string>): maplibregl.Expr
   ] as maplibregl.ExpressionSpecification
 }
 
-export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors, theme }: MapViewProps) {
+export function MapView({
+  selectedStudyId,
+  selectedSpeciesName,
+  speciesColors,
+  theme,
+  yearRange,
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const readyRef = useRef(false)
   const colorsRef = useRef(speciesColors)
   const themeRef = useRef(theme)
+  const rangeRef = useRef(yearRange)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -250,6 +273,7 @@ export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors, t
         addOccurrenceLayer(mapRef.current as MapLibreMap)
         mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
         applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
+        applyYearFilter(mapRef.current as MapLibreMap, rangeRef.current)
         readyRef.current = true
         loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
       })
@@ -279,6 +303,11 @@ export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors, t
     themeRef.current = theme
     if (readyRef.current && mapRef.current) applyMapTheme(mapRef.current, theme)
   }, [theme])
+
+  useEffect(() => {
+    rangeRef.current = yearRange
+    if (readyRef.current && mapRef.current) applyYearFilter(mapRef.current, yearRange)
+  }, [yearRange])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }

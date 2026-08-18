@@ -4,6 +4,7 @@ import { StudiesPanel } from './components/StudiesPanel'
 import { SpeciesPanel } from './components/SpeciesPanel'
 import { Header, HEADER_HEIGHT } from './components/Header'
 import { Legend } from './components/Legend'
+import { TimeFilter } from './components/TimeFilter'
 import { API_BASE_URL } from './config'
 import type { Study } from './types'
 import { fetchSpeciesList, type SpeciesListItem } from './speciesApi'
@@ -41,6 +42,26 @@ function App() {
     [speciesList],
   )
 
+  const yearBounds = useMemo<[number, number] | null>(() => {
+    const years: number[] = []
+    for (const s of studies) {
+      if (s.date_range.start) years.push(Number(s.date_range.start.slice(0, 4)))
+      if (s.date_range.end) years.push(Number(s.date_range.end.slice(0, 4)))
+    }
+    return years.length ? [Math.min(...years), Math.max(...years)] : null
+  }, [studies])
+
+  const [selectedYears, setSelectedYears] = useState<[number, number] | null>(null)
+  useEffect(() => {
+    if (yearBounds && !selectedYears) setSelectedYears(yearBounds)
+  }, [yearBounds, selectedYears])
+
+  // Only filter the map when the window is narrower than the full span.
+  const yearRange =
+    selectedYears && yearBounds && (selectedYears[0] !== yearBounds[0] || selectedYears[1] !== yearBounds[1])
+      ? selectedYears
+      : null
+
   // Gallery → profile (and back). Selecting a species shows all of its occurrences on the map.
   function selectSpecies(name: string | null) {
     setSelectedSpeciesName(name)
@@ -69,6 +90,7 @@ function App() {
           selectedSpeciesName={selectedSpeciesName}
           speciesColors={speciesColors}
           theme={theme}
+          yearRange={yearRange}
         />
         <StudiesPanel
           studies={studies}
@@ -86,6 +108,9 @@ function App() {
           onSelectStudy={focusStudy}
         />
         <Legend species={speciesList} speciesColors={speciesColors} />
+        {yearBounds && selectedYears && yearBounds[0] !== yearBounds[1] && (
+          <TimeFilter bounds={yearBounds} value={selectedYears} onChange={setSelectedYears} />
+        )}
       </div>
     </div>
   )

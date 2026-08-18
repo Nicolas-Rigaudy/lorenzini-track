@@ -4,6 +4,7 @@ import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../specie
 import { fetchSpeciesDetail, type SpeciesDetail } from '../speciesApi'
 import { SizeSchematic } from './SizeSchematic'
 import { Histogram } from './Histogram'
+import { BarChart } from './BarChart'
 import { Icon } from './Icon'
 
 function cardKeyProps(onActivate: () => void) {
@@ -144,11 +145,23 @@ export function SpeciesProfile({
 
         <div style={{ padding: '14px 16px' }}>
           {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            <Tile value={detail ? String(detail.record_count) : '…'} label="records" />
-            <Tile value={detail ? String(detail.study_count) : '…'} label={detail?.study_count === 1 ? 'study' : 'studies'} />
-            <Tile value={yearRange} label="tracked" />
-          </div>
+          {(() => {
+            const tiles = [
+              { v: detail ? detail.record_count.toLocaleString() : '…', l: 'records' },
+              { v: detail ? String(detail.study_count) : '…', l: detail?.study_count === 1 ? 'study' : 'studies' },
+              detail && detail.tag_count > 0
+                ? { v: String(detail.tag_count), l: detail.tag_count === 1 ? 'individual' : 'individuals' }
+                : null,
+              { v: yearRange, l: 'tracked' },
+            ].filter(Boolean) as { v: string; l: string }[]
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${tiles.length}, 1fr)`, gap: 8 }}>
+                {tiles.map((t) => (
+                  <Tile key={t.l} value={t.v} label={t.l} />
+                ))}
+              </div>
+            )
+          })()}
 
           {/* Size */}
           {facts?.max_length_m && (
@@ -211,10 +224,23 @@ export function SpeciesProfile({
             </Section>
           )}
 
-          {/* Histogram */}
+          {/* Movement & seasonality */}
           {detail && (
-            <Section icon="activity" title="Detections by month">
+            <Section icon="activity" title="Movement & seasonality">
+              <div style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginBottom: 4 }}>
+                Detections by month
+              </div>
               <Histogram values={detail.monthly_histogram} />
+              {detail.yearly_histogram.length > 0 && (
+                <>
+                  <div style={{ fontSize: 11, color: 'var(--color-ink-faint)', margin: '14px 0 4px' }}>
+                    Records by year
+                  </div>
+                  <BarChart
+                    bars={detail.yearly_histogram.map((y) => ({ label: String(y.year), value: y.count }))}
+                  />
+                </>
+              )}
             </Section>
           )}
 
