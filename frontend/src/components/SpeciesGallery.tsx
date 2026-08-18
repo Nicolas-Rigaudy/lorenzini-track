@@ -4,11 +4,12 @@ import type { SpeciesListItem } from '../speciesApi'
 
 interface SpeciesGalleryProps {
   species: SpeciesListItem[]
+  speciesColors: Record<string, string>
   search: string
   onSelect: (scientificName: string) => void
 }
 
-export function SpeciesGallery({ species, search, onSelect }: SpeciesGalleryProps) {
+export function SpeciesGallery({ species, speciesColors, search, onSelect }: SpeciesGalleryProps) {
   const [summaries, setSummaries] = useState<Record<string, SpeciesSummary | null>>({})
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export function SpeciesGallery({ species, search, onSelect }: SpeciesGalleryProp
               onClick={() => onSelect(s.scientific_name)}
               style={{
                 border: '1px solid var(--color-border)',
+                borderTop: `3px solid ${speciesColors[s.scientific_name] ?? 'var(--color-border)'}`,
                 borderRadius: 12,
                 overflow: 'hidden',
                 cursor: 'pointer',

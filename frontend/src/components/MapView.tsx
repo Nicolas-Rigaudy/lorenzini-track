@@ -79,7 +79,7 @@ function addOccurrenceLayer(map: MapLibreMap) {
     source: 'occurrences',
     paint: {
       'circle-radius': 5,
-      'circle-color': '#e8702a',
+      'circle-color': '#9fb2bd',
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 1,
     },
@@ -90,14 +90,19 @@ function addOccurrenceLayer(map: MapLibreMap) {
     if (!feature) return
     const p = feature.properties as Record<string, unknown>
 
+    const uncM = Number(p.coordinate_uncertainty_in_meters)
+    const uncertainty =
+      Number.isFinite(uncM) && uncM > 0
+        ? `<br/>Position uncertainty: ~${uncM >= 1000 ? `${Math.round(uncM / 1000)} km` : `${Math.round(uncM)} m`}`
+        : ''
+
     new maplibregl.Popup()
       .setLngLat(e.lngLat)
       .setHTML(
         `<strong>${p.vernacular_name ?? p.scientific_name}</strong><br/>` +
           `<em>${p.scientific_name}</em><br/>` +
-          `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}<br/>` +
-          `Position uncertainty: ~${Math.round(Number(p.coordinate_uncertainty_in_meters) / 1000)} km` +
-          ` (aggregated per 1° grid cell)`,
+          `${p.event_date_start ?? ''} &ndash; ${p.event_date_end ?? ''}` +
+          uncertainty,
       )
       .addTo(map)
   })
@@ -139,12 +144,25 @@ async function loadOccurrences(
 interface MapViewProps {
   selectedStudyId: number | null
   selectedSpeciesName: string | null
+  speciesColors: Record<string, string>
 }
 
-export function MapView({ selectedStudyId, selectedSpeciesName }: MapViewProps) {
+function colorExpression(speciesColors: Record<string, string>): maplibregl.ExpressionSpecification | string {
+  const entries = Object.entries(speciesColors)
+  if (entries.length === 0) return '#9fb2bd'
+  return [
+    'match',
+    ['get', 'scientific_name'],
+    ...entries.flatMap(([name, color]) => [name, color]),
+    '#9fb2bd',
+  ] as maplibregl.ExpressionSpecification
+}
+
+export function MapView({ selectedStudyId, selectedSpeciesName, speciesColors }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const readyRef = useRef(false)
+  const colorsRef = useRef(speciesColors)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -201,6 +219,7 @@ export function MapView({ selectedStudyId, selectedSpeciesName }: MapViewProps) 
         })
 
         addOccurrenceLayer(mapRef.current as MapLibreMap)
+        mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
         readyRef.current = true
         loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
       })
@@ -218,6 +237,13 @@ export function MapView({ selectedStudyId, selectedSpeciesName }: MapViewProps) 
     if (!readyRef.current || !mapRef.current) return
     loadOccurrences(mapRef.current, selectedStudyId, selectedSpeciesName, true)
   }, [selectedStudyId, selectedSpeciesName])
+
+  useEffect(() => {
+    colorsRef.current = speciesColors
+    const map = mapRef.current
+    if (!readyRef.current || !map || !map.getLayer('occurrence-point')) return
+    map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(speciesColors))
+  }, [speciesColors])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }

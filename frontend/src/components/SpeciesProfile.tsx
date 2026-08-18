@@ -11,6 +11,7 @@ interface SpeciesProfileProps {
   selectedStudyId: number | null
   onSelectStudy: (studyId: number | null) => void
   onBack: () => void
+  color: string
 }
 
 const label = {
@@ -27,6 +28,7 @@ export function SpeciesProfile({
   selectedStudyId,
   onSelectStudy,
   onBack,
+  color,
 }: SpeciesProfileProps) {
   const [detail, setDetail] = useState<SpeciesDetail | null>(null)
   const [summary, setSummary] = useState<SpeciesSummary | null>(null)
@@ -103,8 +105,12 @@ export function SpeciesProfile({
             <div style={{ fontSize: 22, fontWeight: 800, textShadow: '0 1px 6px rgba(0,0,0,.55)' }}>
               {facts?.common_name ?? summary?.title ?? scientificName}
             </div>
-            <div style={{ fontSize: 12.5, fontStyle: 'italic', color: '#d7e6ee', marginTop: 2 }}>
-              {scientificName}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+              <span
+                title="Colour used for this species on the map"
+                style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '1.5px solid rgba(255,255,255,.85)', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 12.5, fontStyle: 'italic', color: '#d7e6ee' }}>{scientificName}</span>
             </div>
           </div>
         </div>
@@ -123,8 +129,8 @@ export function SpeciesProfile({
               <div style={{ background: 'var(--color-surface-alt)', borderRadius: 10, padding: '12px 12px 6px' }}>
                 <SizeSchematic
                   maxLengthM={facts.max_length_m}
-                  bodyPlan={facts.body_plan}
                   label={facts.common_name ?? scientificName}
+                  color={color}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6 }}>
                   <span style={{ color: 'var(--color-ink-faint)' }}>Length</span>

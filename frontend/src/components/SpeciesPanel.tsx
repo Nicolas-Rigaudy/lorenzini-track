@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { Study } from '../types'
 import type { SpeciesListItem } from '../speciesApi'
+import { speciesColor } from '../speciesColors'
 import { SpeciesGallery } from './SpeciesGallery'
 import { SpeciesProfile } from './SpeciesProfile'
 
 interface SpeciesPanelProps {
   speciesList: SpeciesListItem[]
+  speciesColors: Record<string, string>
   selectedSpeciesName: string | null
   onSelectSpecies: (name: string | null) => void
   studies: Study[]
@@ -15,6 +17,7 @@ interface SpeciesPanelProps {
 
 export function SpeciesPanel({
   speciesList,
+  speciesColors,
   selectedSpeciesName,
   onSelectSpecies,
   studies,
@@ -48,6 +51,7 @@ export function SpeciesPanel({
           selectedStudyId={selectedStudyId}
           onSelectStudy={onSelectStudy}
           onBack={() => onSelectSpecies(null)}
+          color={speciesColor(speciesColors, selectedSpeciesName)}
         />
       ) : (
         <>
@@ -73,7 +77,12 @@ export function SpeciesPanel({
               }}
             />
           </div>
-          <SpeciesGallery species={speciesList} search={search} onSelect={onSelectSpecies} />
+          <SpeciesGallery
+            species={speciesList}
+            speciesColors={speciesColors}
+            search={search}
+            onSelect={onSelectSpecies}
+          />
         </>
       )}
     </div>

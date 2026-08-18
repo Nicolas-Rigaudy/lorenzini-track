@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapView } from './components/MapView'
 import { StudiesPanel } from './components/StudiesPanel'
 import { SpeciesPanel } from './components/SpeciesPanel'
@@ -7,6 +7,7 @@ import { Legend } from './components/Legend'
 import { API_BASE_URL } from './config'
 import type { Study } from './types'
 import { fetchSpeciesList, type SpeciesListItem } from './speciesApi'
+import { buildSpeciesColors } from './speciesColors'
 
 function App() {
   const [studies, setStudies] = useState<Study[]>([])
@@ -24,6 +25,11 @@ function App() {
       })
     fetchSpeciesList().then(setSpeciesList)
   }, [])
+
+  const speciesColors = useMemo(
+    () => buildSpeciesColors(speciesList.map((s) => s.scientific_name)),
+    [speciesList],
+  )
 
   // Gallery → profile (and back). Selecting a species shows all of its occurrences on the map.
   function selectSpecies(name: string | null) {
@@ -48,7 +54,11 @@ function App() {
     <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <Header />
       <div style={{ position: 'relative', flex: 1, height: `calc(100% - ${HEADER_HEIGHT}px)` }}>
-        <MapView selectedStudyId={selectedStudyId} selectedSpeciesName={selectedSpeciesName} />
+        <MapView
+          selectedStudyId={selectedStudyId}
+          selectedSpeciesName={selectedSpeciesName}
+          speciesColors={speciesColors}
+        />
         <StudiesPanel
           studies={studies}
           loading={studiesLoading}
@@ -57,13 +67,14 @@ function App() {
         />
         <SpeciesPanel
           speciesList={speciesList}
+          speciesColors={speciesColors}
           selectedSpeciesName={selectedSpeciesName}
           onSelectSpecies={selectSpecies}
           studies={studies}
           selectedStudyId={selectedStudyId}
           onSelectStudy={focusStudy}
         />
-        <Legend />
+        <Legend species={speciesList} speciesColors={speciesColors} />
       </div>
     </div>
   )
