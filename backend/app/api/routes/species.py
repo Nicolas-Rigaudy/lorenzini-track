@@ -87,6 +87,29 @@ def get_species(scientific_name: str, db: Session = Depends(get_db)) -> dict:
     by_month = {month: count for month, count in month_rows}
     histogram = [by_month.get(m, 0) for m in range(1, 13)]
 
+    # Records per calendar year, for the "by year" chart.
+    year_rows = db.execute(
+        select(
+            cast(extract("year", Occurrence.event_date_start), Integer),
+            func.count(Occurrence.id),
+        )
+        .where(
+            Occurrence.scientific_name == scientific_name,
+            Occurrence.event_date_start.is_not(None),
+        )
+        .group_by(cast(extract("year", Occurrence.event_date_start), Integer))
+        .order_by(cast(extract("year", Occurrence.event_date_start), Integer))
+    ).all()
+    yearly_histogram = [{"year": year, "count": count} for year, count in year_rows]
+
+    # Distinct tagged individuals (organismID), where the source provides it.
+    tag_count = db.execute(
+        select(func.count(func.distinct(Occurrence.organism_id))).where(
+            Occurrence.scientific_name == scientific_name,
+            Occurrence.organism_id.is_not(None),
+        )
+    ).scalar_one()
+
     study_ids = (
         db.execute(
             select(func.distinct(Occurrence.study_id))
@@ -104,5 +127,7 @@ def get_species(scientific_name: str, db: Session = Depends(get_db)) -> dict:
         **stats,
         "facts": SPECIES_FACTS.get(scientific_name),
         "monthly_histogram": histogram,
+        "yearly_histogram": yearly_histogram,
+        "tag_count": tag_count,
         "study_ids": study_ids,
     }
