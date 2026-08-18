@@ -12,7 +12,7 @@ interface SidebarProps {
   onSelectSpecies: (name: string | null) => void
 }
 
-type Tab = 'studies' | 'species'
+type Tab = 'species' | 'studies'
 
 export function Sidebar({
   studies,
@@ -22,7 +22,8 @@ export function Sidebar({
   selectedSpeciesName,
   onSelectSpecies,
 }: SidebarProps) {
-  const [tab, setTab] = useState<Tab>('studies')
+  const [tab, setTab] = useState<Tab>('species')
+  const [search, setSearch] = useState('')
 
   const tabButtonStyle = (active: boolean) => ({
     flex: 1,
@@ -53,37 +54,58 @@ export function Sidebar({
         zIndex: 1,
       }}
     >
-      <div
-        style={{
-          padding: '14px 16px 0',
-          background: 'var(--color-surface-alt)',
-        }}
-      >
+      <div style={{ padding: '14px 16px 0', background: 'var(--color-surface-alt)' }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-ink)' }}>Explore</div>
-        <div style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 2, marginBottom: 10 }}>
-          {loading ? 'Loading…' : `${studies.length} ${studies.length === 1 ? 'study' : 'studies'} loaded`}
+        <div
+          style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 2, marginBottom: 10 }}
+        >
+          {loading
+            ? 'Loading…'
+            : `${studies.length} ${studies.length === 1 ? 'study' : 'studies'} loaded`}
         </div>
+
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={tab === 'species' ? 'Search species…' : 'Search studies…'}
+          style={{
+            width: '100%',
+            padding: '7px 10px',
+            marginBottom: 10,
+            fontSize: 13,
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--color-ink)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 8,
+            outline: 'none',
+            background: 'var(--color-surface)',
+          }}
+        />
+
         <div style={{ display: 'flex', borderTop: '1px solid var(--color-border)' }}>
-          <div style={tabButtonStyle(tab === 'studies')} onClick={() => setTab('studies')}>
-            Studies
-          </div>
           <div style={tabButtonStyle(tab === 'species')} onClick={() => setTab('species')}>
             Species
+          </div>
+          <div style={tabButtonStyle(tab === 'studies')} onClick={() => setTab('studies')}>
+            Studies
           </div>
         </div>
       </div>
 
-      {tab === 'studies' ? (
-        <StudyList studies={studies} selectedStudyId={selectedStudyId} onSelect={onSelectStudy} />
-      ) : (
+      {tab === 'species' ? (
         <SpeciesList
           studies={studies}
           selectedSpeciesName={selectedSpeciesName}
           onSelectSpecies={onSelectSpecies}
-          onSelectStudy={(studyId) => {
-            onSelectStudy(studyId)
-            setTab('studies')
-          }}
+          search={search}
+        />
+      ) : (
+        <StudyList
+          studies={studies}
+          selectedStudyId={selectedStudyId}
+          onSelect={onSelectStudy}
+          search={search}
         />
       )}
     </div>

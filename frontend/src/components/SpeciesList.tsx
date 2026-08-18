@@ -1,44 +1,81 @@
-import { formatDate, type Study } from '../types'
+import { useEffect, useState } from 'react'
+import type { Study } from '../types'
+import {
+  fetchSpeciesSummary,
+  groupStudiesBySpecies,
+  speciesStats,
+  statusColor,
+  type SpeciesSummary,
+} from '../species'
 
 interface SpeciesListProps {
   studies: Study[]
   selectedSpeciesName: string | null
   onSelectSpecies: (name: string | null) => void
-  onSelectStudy: (studyId: number) => void
-}
-
-function groupBySpecies(studies: Study[]): Map<string, Study[]> {
-  const map = new Map<string, Study[]>()
-  for (const study of studies) {
-    for (const name of study.species.length ? study.species : ['Unknown species']) {
-      if (!map.has(name)) map.set(name, [])
-      map.get(name)!.push(study)
-    }
-  }
-  return map
+  search: string
 }
 
 export function SpeciesList({
   studies,
   selectedSpeciesName,
   onSelectSpecies,
-  onSelectStudy,
+  search,
 }: SpeciesListProps) {
-  const speciesMap = groupBySpecies(studies)
+  const speciesMap = groupStudiesBySpecies(studies)
   const speciesNames = Array.from(speciesMap.keys())
+
+  const [summaries, setSummaries] = useState<Record<string, SpeciesSummary | null>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all(
+      speciesNames.map(async (name) => {
+        const summary = await fetchSpeciesSummary(name)
+        return [name, summary] as const
+      }),
+    ).then((entries) => {
+      if (!cancelled) setSummaries(Object.fromEntries(entries))
+    })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studies])
+
+  const term = search.trim().toLowerCase()
+  const filtered = speciesNames.filter((name) => {
+    if (!term) return true
+    const summary = summaries[name]
+    return (
+      name.toLowerCase().includes(term) ||
+      (summary?.title?.toLowerCase().includes(term) ?? false)
+    )
+  })
+
+  if (filtered.length === 0) {
+    return (
+      <div style={{ padding: 16, fontSize: 13, color: 'var(--color-ink-faint)' }}>
+        No species match “{search}”.
+      </div>
+    )
+  }
 
   return (
     <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
-      {speciesNames.map((name) => {
+      {filtered.map((name) => {
         const isSelected = name === selectedSpeciesName
-        const studiesForSpecies = speciesMap.get(name)!
+        const stats = speciesStats(speciesMap.get(name)!)
+        const summary = summaries[name]
 
         return (
           <div
             key={name}
             onClick={() => onSelectSpecies(isSelected ? null : name)}
             style={{
-              padding: '12px 16px',
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center',
+              padding: '10px 16px',
               borderBottom: '1px solid var(--color-border)',
               cursor: 'pointer',
               background: isSelected ? 'var(--color-accent-soft)' : 'transparent',
@@ -47,38 +84,65 @@ export function SpeciesList({
                 : '3px solid transparent',
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{name}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 2 }}>
-              {studiesForSpecies.length} {studiesForSpecies.length === 1 ? 'study' : 'studies'}
-              {isSelected ? ' — see details on the right' : ''}
-            </div>
-
-            {isSelected && (
-              <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none' }}>
-                {studiesForSpecies.map((study) => (
-                  <li
-                    key={study.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onSelectStudy(study.id)
-                    }}
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 8,
+                flexShrink: 0,
+                background: summary?.thumbnailUrl
+                  ? `center / cover no-repeat url(${summary.thumbnailUrl})`
+                  : 'var(--color-surface-alt)',
+              }}
+            />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'var(--color-ink)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {summary?.title ?? name}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontStyle: 'italic',
+                  color: 'var(--color-ink-faint)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {name}
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                {summary?.conservationStatus && (
+                  <span
                     style={{
-                      padding: '6px 8px',
-                      marginBottom: 4,
-                      background: 'var(--color-surface-alt)',
-                      borderRadius: 6,
-                      cursor: 'pointer',
+                      padding: '1px 6px',
+                      borderRadius: 8,
+                      background: statusColor(summary.conservationStatus),
+                      color: '#fff',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.3,
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 13 }}>{study.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-ink-faint)' }}>
-                      {study.record_count} records &middot; {formatDate(study.date_range.start)} –{' '}
-                      {formatDate(study.date_range.end)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                    {summary.conservationStatus}
+                  </span>
+                )}
+                <span style={{ fontSize: 12, color: 'var(--color-ink-faint)' }}>
+                  {stats.studyCount} {stats.studyCount === 1 ? 'study' : 'studies'} &middot;{' '}
+                  {stats.recordCount} records
+                </span>
+              </div>
+            </div>
           </div>
         )
       })}

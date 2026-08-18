@@ -1,3 +1,36 @@
+import type { Study } from './types'
+
+/** Group studies by scientific name; a study appears under each species it tracks. */
+export function groupStudiesBySpecies(studies: Study[]): Map<string, Study[]> {
+  const map = new Map<string, Study[]>()
+  for (const study of studies) {
+    for (const name of study.species.length ? study.species : ['Unknown species']) {
+      if (!map.has(name)) map.set(name, [])
+      map.get(name)!.push(study)
+    }
+  }
+  return map
+}
+
+export interface SpeciesStats {
+  studyCount: number
+  recordCount: number
+  dateStart: string | null
+  dateEnd: string | null
+}
+
+/** Aggregate record counts and the overall date range across a species' studies. */
+export function speciesStats(studies: Study[]): SpeciesStats {
+  const starts = studies.map((s) => s.date_range.start).filter((d): d is string => !!d)
+  const ends = studies.map((s) => s.date_range.end).filter((d): d is string => !!d)
+  return {
+    studyCount: studies.length,
+    recordCount: studies.reduce((sum, s) => sum + s.record_count, 0),
+    dateStart: starts.length ? starts.reduce((a, b) => (a < b ? a : b)) : null,
+    dateEnd: ends.length ? ends.reduce((a, b) => (a > b ? a : b)) : null,
+  }
+}
+
 const STATUS_COLORS: Record<string, string> = {
   'least concern': '#4b8f3a',
   'near threatened': '#8ea23a',

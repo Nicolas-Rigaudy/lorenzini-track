@@ -106,8 +106,18 @@ function addOccurrenceLayer(map: MapLibreMap) {
   map.on('mouseleave', 'occurrence-point', () => (map.getCanvas().style.cursor = ''))
 }
 
-async function loadOccurrences(map: MapLibreMap, studyId: number | null, flyTo: boolean) {
-  const url = studyId ? `${API_BASE_URL}/occurrences?study_id=${studyId}` : `${API_BASE_URL}/occurrences`
+async function loadOccurrences(
+  map: MapLibreMap,
+  studyId: number | null,
+  speciesName: string | null,
+  flyTo: boolean,
+) {
+  let url = `${API_BASE_URL}/occurrences`
+  if (studyId) {
+    url += `?study_id=${studyId}`
+  } else if (speciesName) {
+    url += `?scientific_name=${encodeURIComponent(speciesName)}`
+  }
   const data = await fetch(url).then((r) => r.json())
 
   const source = map.getSource('occurrences') as maplibregl.GeoJSONSource | undefined
@@ -128,9 +138,10 @@ async function loadOccurrences(map: MapLibreMap, studyId: number | null, flyTo: 
 
 interface MapViewProps {
   selectedStudyId: number | null
+  selectedSpeciesName: string | null
 }
 
-export function MapView({ selectedStudyId }: MapViewProps) {
+export function MapView({ selectedStudyId, selectedSpeciesName }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const readyRef = useRef(false)
@@ -191,7 +202,7 @@ export function MapView({ selectedStudyId }: MapViewProps) {
 
         addOccurrenceLayer(mapRef.current as MapLibreMap)
         readyRef.current = true
-        loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, false)
+        loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
       })
     })
 
@@ -205,8 +216,8 @@ export function MapView({ selectedStudyId }: MapViewProps) {
 
   useEffect(() => {
     if (!readyRef.current || !mapRef.current) return
-    loadOccurrences(mapRef.current, selectedStudyId, true)
-  }, [selectedStudyId])
+    loadOccurrences(mapRef.current, selectedStudyId, selectedSpeciesName, true)
+  }, [selectedStudyId, selectedSpeciesName])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }
