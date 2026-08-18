@@ -32,6 +32,8 @@ def list_occurrences(
                 },
                 "properties": {
                     "occurrence_id": row.occurrence_id,
+                    "study_id": row.study_id,
+                    "organism_id": row.organism_id,
                     "scientific_name": row.scientific_name,
                     "vernacular_name": row.vernacular_name,
                     "event_date_start": row.event_date_start.isoformat()
