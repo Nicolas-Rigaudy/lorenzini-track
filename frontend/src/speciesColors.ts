@@ -2,13 +2,19 @@
 // the blue bathymetry and to sit with the teal/deep-ocean UI — deliberately no orange.
 export const SPECIES_PALETTE = [
   '#2ec4b6', // teal
-  '#f2c14e', // gold
+  '#f4d35e', // gold
   '#9b5de5', // violet
   '#48cae4', // sky
   '#c5d86d', // lime
   '#f15bb5', // magenta
   '#ff8fa3', // salmon
   '#5e60ce', // indigo
+  '#43aa8b', // sea green
+  '#d1495b', // crimson
+  '#118ab2', // blue
+  '#b5838d', // mauve
+  '#06d6a0', // mint
+  '#8338ec', // purple
 ]
 
 const FALLBACK = '#9fb2bd'
