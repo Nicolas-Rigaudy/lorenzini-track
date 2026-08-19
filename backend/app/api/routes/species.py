@@ -51,14 +51,31 @@ def list_species(db: Session = Depends(get_db)) -> list[dict]:
         .all()
     )
 
+    # Per-species centroid (mean position), for the overview map pins.
+    centroids = {
+        name: (lat, lon)
+        for name, lat, lon in db.execute(
+            select(
+                Occurrence.scientific_name,
+                func.avg(Occurrence.decimal_latitude),
+                func.avg(Occurrence.decimal_longitude),
+            )
+            .where(Occurrence.scientific_name.is_not(None))
+            .group_by(Occurrence.scientific_name)
+        ).all()
+    }
+
     result = []
     for name in names:
         facts = SPECIES_FACTS.get(name, {})
+        lat, lon = centroids.get(name, (None, None))
         result.append(
             {
                 **_base_stats(db, name),
                 "common_name": facts.get("common_name"),
                 "body_plan": facts.get("body_plan"),
+                "centroid_lat": float(lat) if lat is not None else None,
+                "centroid_lon": float(lon) if lon is not None else None,
             }
         )
     return result
