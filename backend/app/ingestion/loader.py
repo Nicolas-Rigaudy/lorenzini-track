@@ -13,7 +13,7 @@ To add a new source, write a reader that produces the two shapes below and calls
 """
 
 from datetime import date, datetime
-from typing import TypedDict
+from typing import Iterable, TypedDict
 
 from app.core.db import SessionLocal
 from app.models.occurrence import Occurrence
@@ -78,11 +78,36 @@ def upsert_study(metadata: StudyMetadata, rights_holder: str | None) -> Study:
 _CHUNK = 5000
 
 
-def replace_occurrences(records: list[NormalizedOccurrence], study_id: int) -> int:
-    """Replace a study's occurrences: delete existing rows for the study, then bulk-insert.
+def _build(rec: NormalizedOccurrence, study_id: int) -> Occurrence:
+    return Occurrence(
+        occurrence_id=rec["occurrence_id"],
+        study_id=study_id,
+        dataset_id=rec.get("dataset_id"),
+        dataset_name=rec.get("dataset_name"),
+        basis_of_record=rec.get("basis_of_record"),
+        scientific_name=rec.get("scientific_name"),
+        vernacular_name=rec.get("vernacular_name"),
+        event_date_start=rec.get("event_date_start"),
+        event_date_end=rec.get("event_date_end"),
+        decimal_latitude=rec["decimal_latitude"],
+        decimal_longitude=rec["decimal_longitude"],
+        coordinate_uncertainty_in_meters=rec.get("coordinate_uncertainty_in_meters"),
+        individual_count=rec.get("individual_count"),
+        sex=rec.get("sex"),
+        life_stage=rec.get("life_stage"),
+        occurrence_status=rec.get("occurrence_status"),
+        organism_id=rec.get("organism_id"),
+        license=rec.get("license"),
+        rights_holder=rec.get("rights_holder"),
+        bibliographic_citation=rec.get("bibliographic_citation"),
+        geom=f"SRID=4326;POINT({rec['decimal_longitude']} {rec['decimal_latitude']})",
+    )
 
-    Delete-then-bulk-insert is idempotent per study and far faster than a per-row upsert,
-    so datasets with hundreds of thousands of fixes ingest in seconds rather than minutes.
+
+def replace_occurrences(records: Iterable[NormalizedOccurrence], study_id: int) -> int:
+    """Replace a study's occurrences: delete existing rows for the study, then bulk-insert
+    in chunks. Accepts any iterable (including a generator), so very large sources can be
+    streamed without holding every record in memory at once.
     """
     db = SessionLocal()
     try:
@@ -92,31 +117,7 @@ def replace_occurrences(records: list[NormalizedOccurrence], study_id: int) -> i
         count = 0
         batch: list[Occurrence] = []
         for rec in records:
-            batch.append(
-                Occurrence(
-                    occurrence_id=rec["occurrence_id"],
-                    study_id=study_id,
-                    dataset_id=rec.get("dataset_id"),
-                    dataset_name=rec.get("dataset_name"),
-                    basis_of_record=rec.get("basis_of_record"),
-                    scientific_name=rec.get("scientific_name"),
-                    vernacular_name=rec.get("vernacular_name"),
-                    event_date_start=rec.get("event_date_start"),
-                    event_date_end=rec.get("event_date_end"),
-                    decimal_latitude=rec["decimal_latitude"],
-                    decimal_longitude=rec["decimal_longitude"],
-                    coordinate_uncertainty_in_meters=rec.get("coordinate_uncertainty_in_meters"),
-                    individual_count=rec.get("individual_count"),
-                    sex=rec.get("sex"),
-                    life_stage=rec.get("life_stage"),
-                    occurrence_status=rec.get("occurrence_status"),
-                    organism_id=rec.get("organism_id"),
-                    license=rec.get("license"),
-                    rights_holder=rec.get("rights_holder"),
-                    bibliographic_citation=rec.get("bibliographic_citation"),
-                    geom=f"SRID=4326;POINT({rec['decimal_longitude']} {rec['decimal_latitude']})",
-                )
-            )
+            batch.append(_build(rec, study_id))
             if len(batch) >= _CHUNK:
                 db.bulk_save_objects(batch)
                 db.commit()
@@ -132,9 +133,13 @@ def replace_occurrences(records: list[NormalizedOccurrence], study_id: int) -> i
 
 
 def load(
-    metadata: StudyMetadata, rights_holder: str | None, records: list[NormalizedOccurrence]
+    metadata: StudyMetadata, rights_holder: str | None, records: Iterable[NormalizedOccurrence]
 ) -> Study:
-    """Upsert a study and its occurrences. The single entry point every reader calls."""
+    """Upsert a study and its occurrences. The single entry point every reader calls.
+
+    `records` may be a list or a generator; large sources should pass a generator so rows
+    stream to the database in chunks instead of being held in memory.
+    """
     study = upsert_study(metadata, rights_holder)
     print(f"Upserted study: {study.title!r} (id={study.id})")
     count = replace_occurrences(records, study.id)
