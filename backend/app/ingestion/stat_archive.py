@@ -1,10 +1,12 @@
-"""Shared ingestion logic for GBIF-published, 1-degree-cell-aggregated Darwin Core Archives
-originating from the Satellite Tracking and Analysis Tool (STAT)/OBIS-SEAMAP - the pattern
-behind our whale shark and basking shark datasets (see docs/decisions/0002 and 0006).
+"""Reader for OBIS-SEAMAP / GBIF Darwin Core Archives (the STAT-originated pattern behind our
+shark and ray datasets; see docs/decisions/0002 and 0006).
 
-Note: records from these archives are aggregated per species per 1-degree grid cell and time
-window (not raw per-fix telemetry positions) - coordinateUncertaintyInMeters (~111km) reflects
-that cell size, not GPS/Argos accuracy.
+This module only knows how to *read* a Darwin Core Archive and normalise it; the database
+upsert lives in `app.ingestion.loader`, shared with any other source reader.
+
+Note: the `_1deg` variants are aggregated per species per 1-degree grid cell (so
+coordinateUncertaintyInMeters ~111km reflects cell size); the non-suffixed variants are
+precise per-fix positions.
 """
 
 import csv
@@ -16,9 +18,7 @@ from xml.etree import ElementTree
 
 import httpx
 
-from app.core.db import SessionLocal
-from app.models.occurrence import Occurrence
-from app.models.study import Study
+from app.ingestion.loader import NormalizedOccurrence, StudyMetadata, load
 
 
 def _parse_event_date(raw: str) -> tuple[datetime | None, datetime | None]:
@@ -31,7 +31,7 @@ def _parse_event_date(raw: str) -> tuple[datetime | None, datetime | None]:
     return start, end
 
 
-def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> dict:
+def _parse_study_metadata(eml_bytes: bytes, dataset_id: str) -> StudyMetadata:
     root = ElementTree.fromstring(eml_bytes)
     dataset_el = root.find(".//dataset")
 
@@ -79,84 +79,38 @@ def fetch_archive(archive_url: str) -> tuple[list[dict], bytes]:
     return records, eml_bytes
 
 
-def upsert_study(metadata: dict, rights_holder: str | None) -> Study:
-    db = SessionLocal()
-    try:
-        study = (
-            db.query(Study).filter(Study.dataset_id == metadata["dataset_id"]).one_or_none()
-        ) or Study(dataset_id=metadata["dataset_id"])
-
-        study.title = metadata["title"]
-        study.abstract = metadata["abstract"]
-        study.data_provider = metadata["data_provider"]
-        study.source_url = metadata["source_url"]
-        study.license = metadata["license"]
-        study.rights_holder = rights_holder
-        study.published_date = metadata["published_date"]
-
-        db.add(study)
-        db.commit()
-        db.refresh(study)
-        return study
-    finally:
-        db.close()
-
-
-def upsert_records(records: list[dict], study_id: int) -> int:
-    db = SessionLocal()
-    count = 0
-    try:
-        for row in records:
-            event_start, event_end = _parse_event_date(row.get("eventDate", ""))
-            lat = float(row["decimalLatitude"])
-            lon = float(row["decimalLongitude"])
-
-            existing = (
-                db.query(Occurrence)
-                .filter(Occurrence.occurrence_id == row["occurrenceID"])
-                .one_or_none()
-            )
-            occurrence = existing or Occurrence(occurrence_id=row["occurrenceID"])
-
-            occurrence.study_id = study_id
-            occurrence.dataset_id = row.get("datasetID")
-            occurrence.dataset_name = row.get("datasetName")
-            occurrence.basis_of_record = row.get("basisOfRecord")
-            occurrence.scientific_name = row.get("scientificName")
-            occurrence.vernacular_name = row.get("vernacularName")
-            occurrence.event_date_start = event_start
-            occurrence.event_date_end = event_end
-            occurrence.decimal_latitude = lat
-            occurrence.decimal_longitude = lon
-            occurrence.coordinate_uncertainty_in_meters = _to_float(
-                row.get("coordinateUncertaintyInMeters")
-            )
-            occurrence.individual_count = _to_int(row.get("individualCount"))
-            occurrence.sex = row.get("sex")
-            occurrence.life_stage = row.get("lifeStage")
-            occurrence.occurrence_status = row.get("occurrenceStatus")
-            occurrence.organism_id = row.get("organismID")
-            occurrence.license = row.get("license")
-            occurrence.rights_holder = row.get("rightsHolder")
-            occurrence.bibliographic_citation = row.get("bibliographicCitation")
-            occurrence.geom = f"SRID=4326;POINT({lon} {lat})"
-
-            db.add(occurrence)
-            count += 1
-
-        db.commit()
-    finally:
-        db.close()
-
-    return count
-
-
 def _to_float(value: str | None) -> float | None:
     return float(value) if value else None
 
 
 def _to_int(value: str | None) -> int | None:
     return int(value) if value else None
+
+
+def _to_normalized(row: dict) -> NormalizedOccurrence:
+    """Map a Darwin Core occurrence row to the loader's normalized shape."""
+    event_start, event_end = _parse_event_date(row.get("eventDate", ""))
+    return {
+        "occurrence_id": row["occurrenceID"],
+        "dataset_id": row.get("datasetID"),
+        "dataset_name": row.get("datasetName"),
+        "basis_of_record": row.get("basisOfRecord"),
+        "scientific_name": row.get("scientificName"),
+        "vernacular_name": row.get("vernacularName"),
+        "event_date_start": event_start,
+        "event_date_end": event_end,
+        "decimal_latitude": float(row["decimalLatitude"]),
+        "decimal_longitude": float(row["decimalLongitude"]),
+        "coordinate_uncertainty_in_meters": _to_float(row.get("coordinateUncertaintyInMeters")),
+        "individual_count": _to_int(row.get("individualCount")),
+        "sex": row.get("sex"),
+        "life_stage": row.get("lifeStage"),
+        "occurrence_status": row.get("occurrenceStatus"),
+        "organism_id": row.get("organismID"),
+        "license": row.get("license"),
+        "rights_holder": row.get("rightsHolder"),
+        "bibliographic_citation": row.get("bibliographicCitation"),
+    }
 
 
 def ingest(archive_url: str) -> None:
@@ -167,8 +121,4 @@ def ingest(archive_url: str) -> None:
     dataset_id = records[0]["datasetID"] if records else ""
     rights_holder = records[0].get("rightsHolder") if records else None
     metadata = _parse_study_metadata(eml_bytes, dataset_id)
-    study = upsert_study(metadata, rights_holder)
-    print(f"Upserted study: {study.title!r} (id={study.id})")
-
-    count = upsert_records(records, study.id)
-    print(f"Upserted {count} records into the occurrence table.")
+    load(metadata, rights_holder, [_to_normalized(r) for r in records])
