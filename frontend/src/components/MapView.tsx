@@ -194,9 +194,6 @@ async function loadOccurrences(
   const source = map.getSource('occurrences') as maplibregl.GeoJSONSource | undefined
   source?.setData(data)
 
-  const trackSource = map.getSource('tracks') as maplibregl.GeoJSONSource | undefined
-  trackSource?.setData(buildTracks(data.features))
-
   if (flyTo && data.features.length > 0) {
     const lons = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[0])
     const lats = data.features.map((f: { geometry: { coordinates: number[] } }) => f.geometry.coordinates[1])
@@ -208,6 +205,21 @@ async function loadOccurrences(
       { padding: 80, duration: 1000, maxZoom: 8 },
     )
   }
+
+  return data.features as OccFeature[]
+}
+
+// Rebuild the track lines from the year-filtered fixes so paths honour the time slider too
+// (a LineString has no single year, so the point filter alone can't hide them).
+function updateTracks(map: MapLibreMap, features: OccFeature[], range: [number, number] | null) {
+  const inRange = range
+    ? features.filter((f) => {
+        const y = f.properties?.year
+        return typeof y === 'number' && y >= range[0] && y <= range[1]
+      })
+    : features
+  const src = map.getSource('tracks') as maplibregl.GeoJSONSource | undefined
+  src?.setData(buildTracks(inRange))
 }
 
 interface MapViewProps {
@@ -284,6 +296,7 @@ export function MapView({
   const colorsRef = useRef(speciesColors)
   const themeRef = useRef(theme)
   const rangeRef = useRef(yearRange)
+  const featuresRef = useRef<OccFeature[]>([])
   const selectStudyRef = useRef(onSelectStudy)
   selectStudyRef.current = onSelectStudy
 
@@ -348,7 +361,12 @@ export function MapView({
         applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         applyYearFilter(mapRef.current as MapLibreMap, rangeRef.current)
         readyRef.current = true
-        loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
+        loadOccurrences(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false).then(
+          (feats) => {
+            featuresRef.current = feats
+            if (mapRef.current) updateTracks(mapRef.current, feats, rangeRef.current)
+          },
+        )
       })
     })
 
@@ -362,7 +380,10 @@ export function MapView({
 
   useEffect(() => {
     if (!readyRef.current || !mapRef.current) return
-    loadOccurrences(mapRef.current, selectedStudyId, selectedSpeciesName, true)
+    loadOccurrences(mapRef.current, selectedStudyId, selectedSpeciesName, true).then((feats) => {
+      featuresRef.current = feats
+      if (mapRef.current) updateTracks(mapRef.current, feats, rangeRef.current)
+    })
   }, [selectedStudyId, selectedSpeciesName])
 
   useEffect(() => {
@@ -379,7 +400,10 @@ export function MapView({
 
   useEffect(() => {
     rangeRef.current = yearRange
-    if (readyRef.current && mapRef.current) applyYearFilter(mapRef.current, yearRange)
+    if (readyRef.current && mapRef.current) {
+      applyYearFilter(mapRef.current, yearRange)
+      updateTracks(mapRef.current, featuresRef.current, yearRange)
+    }
   }, [yearRange])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
