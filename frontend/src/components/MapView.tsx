@@ -327,10 +327,12 @@ export function MapView({
             id: 'undersea-feature-point',
             type: 'circle',
             source: 'undersea-features',
-            minzoom: 3,
+            minzoom: 4,
             paint: {
-              'circle-radius': 2.5,
+              'circle-radius': 1.6,
               'circle-color': '#0d3a52',
+              // Fade the markers in gradually rather than popping in at low zoom.
+              'circle-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0, 6, 0.5],
             },
           })
 
@@ -338,18 +340,19 @@ export function MapView({
             id: 'undersea-feature-label',
             type: 'symbol',
             source: 'undersea-features',
-            minzoom: 3,
+            minzoom: 5,
             layout: {
               'text-field': ['concat', ['get', 'NAME'], ' ', ['get', 'TYPE']],
               'text-font': ['Noto Sans Italic'],
-              'text-size': 12,
+              'text-size': 10.5,
               'text-variable-anchor': ['top'],
               'text-radial-offset': 0.4,
             },
             paint: {
               'text-color': '#0d3a52',
-              'text-halo-color': 'rgba(255,255,255,0.95)',
-              'text-halo-width': 1.8,
+              'text-halo-color': 'rgba(255,255,255,0.9)',
+              'text-halo-width': 1.2,
+              'text-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0, 6.5, 0.7],
             },
           })
 
