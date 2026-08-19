@@ -8,9 +8,16 @@ interface StudiesPanelProps {
   loading: boolean
   selectedStudyId: number | null
   onSelectStudy: (studyId: number | null) => void
+  onSelectSpecies: (name: string) => void
 }
 
-export function StudiesPanel({ studies, loading, selectedStudyId, onSelectStudy }: StudiesPanelProps) {
+export function StudiesPanel({
+  studies,
+  loading,
+  selectedStudyId,
+  onSelectStudy,
+  onSelectSpecies,
+}: StudiesPanelProps) {
   const [search, setSearch] = useState('')
 
   return (
@@ -47,7 +54,13 @@ export function StudiesPanel({ studies, loading, selectedStudyId, onSelectStudy 
           />
         </div>
       </div>
-      <StudyList studies={studies} selectedStudyId={selectedStudyId} onSelect={onSelectStudy} search={search} />
+      <StudyList
+        studies={studies}
+        selectedStudyId={selectedStudyId}
+        onSelect={onSelectStudy}
+        onSelectSpecies={onSelectSpecies}
+        search={search}
+      />
     </div>
   )
 }

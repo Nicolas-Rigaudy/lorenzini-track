@@ -9,6 +9,7 @@ import { Icon } from './Icon'
 interface SpeciesPanelProps {
   speciesList: SpeciesListItem[]
   speciesColors: Record<string, string>
+  studySpecies: string[] | null
   selectedSpeciesName: string | null
   onSelectSpecies: (name: string | null) => void
   studies: Study[]
@@ -19,6 +20,7 @@ interface SpeciesPanelProps {
 export function SpeciesPanel({
   speciesList,
   speciesColors,
+  studySpecies,
   selectedSpeciesName,
   onSelectSpecies,
   studies,
@@ -55,30 +57,37 @@ export function SpeciesPanel({
           color={speciesColor(speciesColors, selectedSpeciesName)}
         />
       ) : (
-        <>
-          <div style={{ padding: '12px 14px', background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--color-brand-light)' }}>
-              Species · {speciesList.length}
-            </div>
-            <div className="po-searchwrap" style={{ marginTop: 9 }}>
-              <Icon name="search" size={15} />
-              <input
-                className="po-input"
-                type="search"
-                aria-label="Search species"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search species…"
+        (() => {
+          const galleryList = studySpecies
+            ? speciesList.filter((s) => studySpecies.includes(s.scientific_name))
+            : speciesList
+          return (
+            <>
+              <div style={{ padding: '12px 14px', background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--color-brand-light)' }}>
+                  {studySpecies ? `Species in study · ${galleryList.length}` : `Species · ${galleryList.length}`}
+                </div>
+                <div className="po-searchwrap" style={{ marginTop: 9 }}>
+                  <Icon name="search" size={15} />
+                  <input
+                    className="po-input"
+                    type="search"
+                    aria-label="Search species"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search species…"
+                  />
+                </div>
+              </div>
+              <SpeciesGallery
+                species={galleryList}
+                speciesColors={speciesColors}
+                search={search}
+                onSelect={onSelectSpecies}
               />
-            </div>
-          </div>
-          <SpeciesGallery
-            species={speciesList}
-            speciesColors={speciesColors}
-            search={search}
-            onSelect={onSelectSpecies}
-          />
-        </>
+            </>
+          )
+        })()
       )}
     </div>
   )

@@ -68,18 +68,32 @@ function App() {
     setSelectedStudyId(null)
   }
 
-  // Selecting a study from the left list opens the species profile it belongs to, with that
-  // study focused on the map.
+  // Selecting a study from the left list: a single-species study opens that species' page with
+  // this study focused (so the map shows THIS study's fixes and the study's details are shown),
+  // while a multi-species study shows the whole study and lets you pick a species.
   function selectStudy(studyId: number | null) {
-    setSelectedStudyId(studyId)
+    if (studyId === null) {
+      setSelectedStudyId(null)
+      setSelectedSpeciesName(null)
+      return
+    }
     const study = studies.find((s) => s.id === studyId)
-    setSelectedSpeciesName(study?.species?.[0] ?? selectedSpeciesName)
+    setSelectedStudyId(studyId)
+    setSelectedSpeciesName(study && study.species.length === 1 ? study.species[0] : null)
   }
 
-  // Focusing a study from inside the species profile keeps the species selected.
+  // Focusing a study from inside a species profile keeps the species selected, so the map
+  // shows just that species within that study.
   function focusStudy(studyId: number | null) {
     setSelectedStudyId(studyId)
   }
+
+  // When a multi-species study is selected (and no species yet), narrow the gallery to that
+  // study's species.
+  const studySpecies =
+    selectedStudyId && !selectedSpeciesName
+      ? (studies.find((s) => s.id === selectedStudyId)?.species ?? null)
+      : null
 
   return (
     <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -91,17 +105,20 @@ function App() {
           speciesColors={speciesColors}
           theme={theme}
           yearRange={yearRange}
-          onSelectStudy={selectStudy}
+          speciesList={speciesList}
+          onPickSpecies={selectSpecies}
         />
         <StudiesPanel
           studies={studies}
           loading={studiesLoading}
           selectedStudyId={selectedStudyId}
           onSelectStudy={selectStudy}
+          onSelectSpecies={selectSpecies}
         />
         <SpeciesPanel
           speciesList={speciesList}
           speciesColors={speciesColors}
+          studySpecies={studySpecies}
           selectedSpeciesName={selectedSpeciesName}
           onSelectSpecies={selectSpecies}
           studies={studies}

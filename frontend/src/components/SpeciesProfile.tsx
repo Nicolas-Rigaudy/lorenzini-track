@@ -252,44 +252,74 @@ export function SpeciesProfile({
                 return (
                   <div
                     key={study.id}
-                    className="po-card"
-                    aria-pressed={active}
-                    aria-label={`${study.title}. ${active ? 'Showing on map' : 'Focus map on this study'}`}
-                    {...cardKeyProps(() => onSelectStudy(active ? null : study.id))}
                     style={{
-                      display: 'flex',
-                      gap: 10,
-                      alignItems: 'center',
                       border: '1px solid var(--color-border)',
                       borderLeft: active ? '3px solid var(--color-brand-light)' : '3px solid var(--color-border)',
                       borderRadius: 10,
-                      padding: 8,
+                      overflow: 'hidden',
                       background: active ? 'var(--color-accent-soft)' : 'var(--color-surface)',
                     }}
                   >
                     <div
-                      role="img"
-                      aria-label=""
-                      style={{
-                        width: 52,
-                        height: 42,
-                        borderRadius: 6,
-                        flexShrink: 0,
-                        background: summary?.thumbnailUrl
-                          ? `center / cover no-repeat url(${summary.thumbnailUrl})`
-                          : 'var(--color-surface-alt)',
-                      }}
-                    />
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.2 }}>
-                        {study.title}
-                      </div>
-                      <div style={{ fontSize: 11.5, color: 'var(--color-ink-faint)', marginTop: 3 }}>
-                        {study.record_count} records · {formatDate(study.date_range.start)} –{' '}
-                        {formatDate(study.date_range.end)}
-                        {active ? '' : ' · focus map'}
+                      className="po-row"
+                      aria-pressed={active}
+                      aria-label={`${study.title}. ${active ? 'Showing on map' : 'Focus map on this study'}`}
+                      {...cardKeyProps(() => onSelectStudy(active ? null : study.id))}
+                      style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 8 }}
+                    >
+                      <div
+                        role="img"
+                        aria-label=""
+                        style={{
+                          width: 52,
+                          height: 42,
+                          borderRadius: 6,
+                          flexShrink: 0,
+                          background: summary?.thumbnailUrl
+                            ? `center / cover no-repeat url(${summary.thumbnailUrl})`
+                            : 'var(--color-surface-alt)',
+                        }}
+                      />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.2 }}>
+                          {study.title}
+                        </div>
+                        <div style={{ fontSize: 11.5, color: 'var(--color-ink-faint)', marginTop: 3 }}>
+                          {study.record_count.toLocaleString()} records · {formatDate(study.date_range.start)} –{' '}
+                          {formatDate(study.date_range.end)}
+                          {active ? '' : ' · focus map'}
+                        </div>
                       </div>
                     </div>
+
+                    {active && (
+                      <div style={{ padding: '0 10px 10px' }}>
+                        {study.abstract && (
+                          <p style={{ margin: '0 0 8px', fontSize: 12.5, color: 'var(--color-ink-soft)', lineHeight: 1.5 }}>
+                            {study.abstract}
+                          </p>
+                        )}
+                        <ul style={{ margin: 0, padding: '0 0 0 16px', lineHeight: 1.6, fontSize: 12, color: 'var(--color-ink)' }}>
+                          {study.rights_holder && <li><strong>Conducted by:</strong> {study.rights_holder}</li>}
+                          {study.data_provider && <li><strong>Data provider:</strong> {study.data_provider}</li>}
+                          {study.published_date && <li><strong>Published:</strong> {formatDate(study.published_date)}</li>}
+                          <li><strong>Licence:</strong> {study.license ?? 'Not specified'}</li>
+                        </ul>
+                        {study.source_url && (
+                          <a
+                            href={study.source_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="po-link"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 12.5 }}
+                          >
+                            View source dataset
+                            <Icon name="external" size={13} />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })}

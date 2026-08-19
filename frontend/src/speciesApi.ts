@@ -28,6 +28,8 @@ export interface SpeciesListItem {
   record_count: number
   study_count: number
   date_range: { start: string | null; end: string | null }
+  centroid_lat: number | null
+  centroid_lon: number | null
 }
 
 export interface YearCount {
