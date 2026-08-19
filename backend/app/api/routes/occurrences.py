@@ -1,11 +1,17 @@
+from math import ceil
+
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models.occurrence import Occurrence
 
 router = APIRouter(tags=["occurrences"])
+
+# Cap points returned to any single map request. Large datasets (100k+ fixes) are
+# down-sampled evenly by id so the map/GeoJSON stay responsive; small ones are returned whole.
+MAX_POINTS = 15000
 
 
 @router.get("/occurrences")
@@ -14,15 +20,28 @@ def list_occurrences(
     scientific_name: str | None = None,
     db: Session = Depends(get_db),
 ) -> dict:
-    query = select(Occurrence)
+    filters = []
     if study_id is not None:
-        query = query.where(Occurrence.study_id == study_id)
+        filters.append(Occurrence.study_id == study_id)
     if scientific_name is not None:
-        query = query.where(Occurrence.scientific_name == scientific_name)
+        filters.append(Occurrence.scientific_name == scientific_name)
+
+    total = db.execute(select(func.count(Occurrence.id)).where(*filters)).scalar_one()
+
+    query = select(Occurrence).where(*filters)
+    sampled = total > MAX_POINTS
+    if sampled:
+        # Even modulo sampling spreads the kept points across all individuals and time.
+        stride = ceil(total / MAX_POINTS)
+        query = query.where(Occurrence.id % stride == 0)
+
     rows = db.execute(query).scalars().all()
 
     return {
         "type": "FeatureCollection",
+        "total": total,
+        "returned": len(rows),
+        "sampled": sampled,
         "features": [
             {
                 "type": "Feature",

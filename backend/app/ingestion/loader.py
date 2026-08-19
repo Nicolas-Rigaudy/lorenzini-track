@@ -75,51 +75,60 @@ def upsert_study(metadata: StudyMetadata, rights_holder: str | None) -> Study:
         db.close()
 
 
-def upsert_occurrences(records: list[NormalizedOccurrence], study_id: int) -> int:
+_CHUNK = 5000
+
+
+def replace_occurrences(records: list[NormalizedOccurrence], study_id: int) -> int:
+    """Replace a study's occurrences: delete existing rows for the study, then bulk-insert.
+
+    Delete-then-bulk-insert is idempotent per study and far faster than a per-row upsert,
+    so datasets with hundreds of thousands of fixes ingest in seconds rather than minutes.
+    """
     db = SessionLocal()
-    count = 0
     try:
-        for rec in records:
-            existing = (
-                db.query(Occurrence)
-                .filter(Occurrence.occurrence_id == rec["occurrence_id"])
-                .one_or_none()
-            )
-            occurrence = existing or Occurrence(occurrence_id=rec["occurrence_id"])
-
-            occurrence.study_id = study_id
-            occurrence.dataset_id = rec.get("dataset_id")
-            occurrence.dataset_name = rec.get("dataset_name")
-            occurrence.basis_of_record = rec.get("basis_of_record")
-            occurrence.scientific_name = rec.get("scientific_name")
-            occurrence.vernacular_name = rec.get("vernacular_name")
-            occurrence.event_date_start = rec.get("event_date_start")
-            occurrence.event_date_end = rec.get("event_date_end")
-            occurrence.decimal_latitude = rec["decimal_latitude"]
-            occurrence.decimal_longitude = rec["decimal_longitude"]
-            occurrence.coordinate_uncertainty_in_meters = rec.get(
-                "coordinate_uncertainty_in_meters"
-            )
-            occurrence.individual_count = rec.get("individual_count")
-            occurrence.sex = rec.get("sex")
-            occurrence.life_stage = rec.get("life_stage")
-            occurrence.occurrence_status = rec.get("occurrence_status")
-            occurrence.organism_id = rec.get("organism_id")
-            occurrence.license = rec.get("license")
-            occurrence.rights_holder = rec.get("rights_holder")
-            occurrence.bibliographic_citation = rec.get("bibliographic_citation")
-            occurrence.geom = (
-                f"SRID=4326;POINT({rec['decimal_longitude']} {rec['decimal_latitude']})"
-            )
-
-            db.add(occurrence)
-            count += 1
-
+        db.query(Occurrence).filter(Occurrence.study_id == study_id).delete()
         db.commit()
+
+        count = 0
+        batch: list[Occurrence] = []
+        for rec in records:
+            batch.append(
+                Occurrence(
+                    occurrence_id=rec["occurrence_id"],
+                    study_id=study_id,
+                    dataset_id=rec.get("dataset_id"),
+                    dataset_name=rec.get("dataset_name"),
+                    basis_of_record=rec.get("basis_of_record"),
+                    scientific_name=rec.get("scientific_name"),
+                    vernacular_name=rec.get("vernacular_name"),
+                    event_date_start=rec.get("event_date_start"),
+                    event_date_end=rec.get("event_date_end"),
+                    decimal_latitude=rec["decimal_latitude"],
+                    decimal_longitude=rec["decimal_longitude"],
+                    coordinate_uncertainty_in_meters=rec.get("coordinate_uncertainty_in_meters"),
+                    individual_count=rec.get("individual_count"),
+                    sex=rec.get("sex"),
+                    life_stage=rec.get("life_stage"),
+                    occurrence_status=rec.get("occurrence_status"),
+                    organism_id=rec.get("organism_id"),
+                    license=rec.get("license"),
+                    rights_holder=rec.get("rights_holder"),
+                    bibliographic_citation=rec.get("bibliographic_citation"),
+                    geom=f"SRID=4326;POINT({rec['decimal_longitude']} {rec['decimal_latitude']})",
+                )
+            )
+            if len(batch) >= _CHUNK:
+                db.bulk_save_objects(batch)
+                db.commit()
+                count += len(batch)
+                batch = []
+        if batch:
+            db.bulk_save_objects(batch)
+            db.commit()
+            count += len(batch)
+        return count
     finally:
         db.close()
-
-    return count
 
 
 def load(
@@ -128,6 +137,6 @@ def load(
     """Upsert a study and its occurrences. The single entry point every reader calls."""
     study = upsert_study(metadata, rights_holder)
     print(f"Upserted study: {study.title!r} (id={study.id})")
-    count = upsert_occurrences(records, study.id)
-    print(f"Upserted {count} records into the occurrence table.")
+    count = replace_occurrences(records, study.id)
+    print(f"Loaded {count} records into the occurrence table.")
     return study
