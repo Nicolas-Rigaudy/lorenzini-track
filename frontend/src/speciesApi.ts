@@ -25,6 +25,7 @@ export interface SpeciesListItem {
   vernacular_name: string | null
   common_name: string | null
   body_plan: 'shark' | 'ray' | null
+  taxon_group: string
   record_count: number
   study_count: number
   date_range: { start: string | null; end: string | null }

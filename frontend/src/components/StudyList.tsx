@@ -39,7 +39,6 @@ export function StudyList({ studies, selectedStudyId, onSelect, onSelectSpecies,
     <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
       {filtered.map((study) => {
         const isSelected = study.id === selectedStudyId
-        const isMulti = study.species.length > 1
         const activate = () => onSelect(isSelected ? null : study.id)
         return (
           <div key={study.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -75,7 +74,7 @@ export function StudyList({ studies, selectedStudyId, onSelect, onSelectSpecies,
               </div>
             </div>
 
-            {isSelected && isMulti && (
+            {isSelected && (
               <div style={{ padding: '4px 16px 14px' }}>
                 {study.abstract && (
                   <p style={{ margin: '4px 0 12px', fontSize: 13, color: 'var(--color-ink-soft)', lineHeight: 1.5 }}>

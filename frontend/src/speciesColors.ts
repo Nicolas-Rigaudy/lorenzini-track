@@ -19,20 +19,45 @@ export const SPECIES_PALETTE = [
 
 const FALLBACK = '#9fb2bd'
 
-/** Stable, distinct species→colour map. Colours are generated from the sorted scientific name
- * index using the golden-angle hue rotation, so every species gets a visually distinct hue
- * (even for 20+ species) and — crucially — the same species always keeps the same colour,
- * regardless of how many species are loaded or filtered. Used everywhere (map dots, legend,
- * gallery accents, profile) so accents always match the dots. */
-export function buildSpeciesColors(names: string[]): Record<string, string> {
-  const uniq = [...new Set(names)].sort()
+// Each taxon family gets a base hue; species within a family are shades of it. This is far
+// more cohesive than a rainbow — related animals read as related — while staying distinct.
+const GROUP_HUE: Record<string, number> = {
+  shark: 205, // ocean blue
+  ray: 185, // teal
+  turtle: 140, // green
+  pinniped: 32, // warm sand
+  seabird: 275, // violet
+  sirenian: 325, // magenta
+  other: 220,
+}
+
+export interface SpeciesColorInput {
+  scientific_name: string
+  taxon_group?: string
+}
+
+/** Stable species→colour map, coloured by taxon family (shades within a family). The same
+ * species always keeps the same colour regardless of filtering, and every accent (dots,
+ * tracks, legend, gallery, profile) uses this one map. */
+export function buildSpeciesColors(species: SpeciesColorInput[]): Record<string, string> {
+  const groups = new Map<string, string[]>()
+  for (const s of species) {
+    const g = s.taxon_group || 'other'
+    if (!groups.has(g)) groups.set(g, [])
+    groups.get(g)!.push(s.scientific_name)
+  }
   const map: Record<string, string> = {}
-  uniq.forEach((name, i) => {
-    // Golden-angle hue keeps every species distinct; muted saturation/lightness keeps the
-    // set calm and cohesive (not the jarring full-saturation rainbow).
-    const hue = Math.round((i * 137.508) % 360)
-    map[name] = `hsl(${hue}, 42%, 58%)`
-  })
+  for (const [group, names] of groups) {
+    const base = GROUP_HUE[group] ?? GROUP_HUE.other
+    const sorted = [...new Set(names)].sort()
+    const n = sorted.length
+    sorted.forEach((name, i) => {
+      const spread = n === 1 ? 0 : i - (n - 1) / 2
+      const hue = Math.round((base + spread * 12 + 360) % 360)
+      const light = n === 1 ? 55 : Math.round(44 + (i / (n - 1)) * 22) // 44%..66%
+      map[name] = `hsl(${hue}, 52%, ${light}%)`
+    })
+  }
   return map
 }
 

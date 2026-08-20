@@ -33,6 +33,25 @@ def _base_stats(db: Session, scientific_name: str) -> dict:
     }
 
 
+def _taxon_group(facts: dict) -> str:
+    """Coarse group used to colour species by family on the map."""
+    if facts.get("body_plan") == "ray":
+        return "ray"
+    if facts.get("body_plan") == "shark":
+        return "shark"
+    cls = facts.get("taxon_class")
+    order = facts.get("taxon_order")
+    if cls == "Reptilia":
+        return "turtle"
+    if cls == "Aves":
+        return "seabird"
+    if cls == "Mammalia" and order == "Sirenia":
+        return "sirenian"
+    if cls == "Mammalia":
+        return "pinniped"
+    return "other"
+
+
 @router.get("")
 def list_species(db: Session = Depends(get_db)) -> list[dict]:
     """Every species present in the occurrence data, with counts and curated facts.
@@ -74,6 +93,7 @@ def list_species(db: Session = Depends(get_db)) -> list[dict]:
                 **_base_stats(db, name),
                 "common_name": facts.get("common_name"),
                 "body_plan": facts.get("body_plan"),
+                "taxon_group": _taxon_group(facts),
                 "centroid_lat": float(lat) if lat is not None else None,
                 "centroid_lon": float(lon) if lon is not None else None,
             }

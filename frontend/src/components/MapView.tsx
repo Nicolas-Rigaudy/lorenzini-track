@@ -75,19 +75,6 @@ interface OccFeature {
   properties: Record<string, unknown>
 }
 
-// A distinct per-individual palette (not the species palette) so two animals of the same
-// species are visually separable. Bright, high-contrast, no orange.
-const TRACK_COLORS = [
-  '#ffd166',
-  '#06d6a0',
-  '#ef476f',
-  '#4cc9f0',
-  '#b892ff',
-  '#c5f06d',
-  '#f15bb5',
-  '#5e8bff',
-]
-
 // Consecutive fixes farther apart than this are treated as separate segments rather than
 // joined — this avoids drawing straight lines across land between distant detections (e.g.
 // coarse acoustic receiver stations around Australia).
@@ -103,14 +90,6 @@ function haversineKm(a: [number, number], b: [number, number]): number {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
   return 2 * 6371 * Math.asin(Math.sqrt(h))
-}
-
-// Stable colour per individual: hash the organismID so an animal keeps its colour regardless
-// of how the data is filtered (year slider, selection). No more colours jumping around.
-function organismColor(org: string): string {
-  let h = 0
-  for (let i = 0; i < org.length; i++) h = (h * 31 + org.charCodeAt(i)) | 0
-  return TRACK_COLORS[Math.abs(h) % TRACK_COLORS.length]
 }
 
 function decimals(n: number): number {
@@ -134,9 +113,10 @@ function isCoarse(pts: OccFeature[]): boolean {
   return coarse / sample.length > 0.5
 }
 
-// Connect each organism's fixes into chronological LineStrings, coloured per individual and
-// split at large gaps. Skips single-fix and station/acoustic organisms.
-function buildTracks(features: OccFeature[]) {
+// Connect each organism's fixes into chronological LineStrings, coloured by SPECIES and split
+// at large gaps. A line is only drawn when we know it's the same individual (organismID) and
+// the data is real GPS/Argos telemetry — station/acoustic organisms get dots only.
+function buildTracks(features: OccFeature[], speciesColors: Record<string, string>) {
   const byOrganism = new Map<string, OccFeature[]>()
   for (const f of features) {
     const org = f.properties?.organism_id
@@ -150,7 +130,8 @@ function buildTracks(features: OccFeature[]) {
     pts.sort((a, b) =>
       String(a.properties.event_date_start).localeCompare(String(b.properties.event_date_start)),
     )
-    const color = organismColor(org)
+    const sci = String(pts[0].properties.scientific_name ?? '')
+    const color = speciesColors[sci] ?? '#9fb2bd'
     let segment: [number, number][] = [pts[0].geometry.coordinates]
     const flush = () => {
       if (segment.length >= 2) {
@@ -212,6 +193,20 @@ function addOccurrenceLayers(map: MapLibreMap, onPointClick: (scientificName: st
       'line-opacity': 0.4,
     },
   })
+  // A white glow behind the hovered individual's line so you can follow one path among many.
+  map.addLayer({
+    id: 'occurrence-track-highlight',
+    type: 'line',
+    source: 'tracks',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-color': '#ffffff',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 2, 6, 7, 12],
+      'line-opacity': 0.9,
+      'line-blur': 2,
+    },
+    filter: ['==', ['get', 'organism_id'], '___none___'],
+  })
   map.addLayer({
     id: 'occurrence-track',
     type: 'line',
@@ -222,6 +217,17 @@ function addOccurrenceLayers(map: MapLibreMap, onPointClick: (scientificName: st
       'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2, 7, 4.5],
       'line-opacity': 0.95,
     },
+  })
+
+  map.on('mousemove', 'occurrence-track', (e) => {
+    const org = e.features?.[0]?.properties?.organism_id
+    if (org == null) return
+    map.setFilter('occurrence-track-highlight', ['==', ['get', 'organism_id'], String(org)])
+    map.getCanvas().style.cursor = 'pointer'
+  })
+  map.on('mouseleave', 'occurrence-track', () => {
+    map.setFilter('occurrence-track-highlight', ['==', ['get', 'organism_id'], '___none___'])
+    map.getCanvas().style.cursor = ''
   })
 
   const hover = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10 })
@@ -291,7 +297,12 @@ async function loadOccurrences(
 
 // Rebuild the track lines from the year-filtered fixes so paths honour the time slider too
 // (a LineString has no single year, so the point filter alone can't hide them).
-function updateTracks(map: MapLibreMap, features: OccFeature[], range: [number, number] | null) {
+function updateTracks(
+  map: MapLibreMap,
+  features: OccFeature[],
+  range: [number, number] | null,
+  speciesColors: Record<string, string>,
+) {
   const inRange = range
     ? features.filter((f) => {
         const y = f.properties?.year
@@ -299,7 +310,7 @@ function updateTracks(map: MapLibreMap, features: OccFeature[], range: [number, 
       })
     : features
   const src = map.getSource('tracks') as maplibregl.GeoJSONSource | undefined
-  src?.setData(buildTracks(inRange))
+  src?.setData(buildTracks(inRange, speciesColors))
 }
 
 interface MapViewProps {
@@ -441,7 +452,7 @@ export function MapView({
     clearSpeciesMarkers()
     loadOccurrences(map, studyId, speciesName, flyTo).then((feats) => {
       featuresRef.current = feats
-      if (mapRef.current) updateTracks(mapRef.current, feats, rangeRef.current)
+      if (mapRef.current) updateTracks(mapRef.current, feats, rangeRef.current, colorsRef.current)
     })
   }
 
@@ -458,6 +469,10 @@ export function MapView({
         style,
         center: [0, 0],
         zoom: 1.5,
+        // Keep many more tiles cached and don't re-fetch expired ones, so panning/zooming
+        // doesn't constantly reload the bathymetry raster.
+        maxTileCacheSize: 2000,
+        refreshExpiredTiles: false,
       })
 
       mapRef.current.addControl(new maplibregl.NavigationControl(), 'top-right')
@@ -539,6 +554,8 @@ export function MapView({
     const map = mapRef.current
     if (!readyRef.current || !map || !map.getLayer('occurrence-point')) return
     map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(speciesColors))
+    // Recolour tracks too (they were built with a fallback colour if colours loaded late).
+    updateTracks(map, featuresRef.current, rangeRef.current, speciesColors)
   }, [speciesColors])
 
   useEffect(() => {
@@ -550,7 +567,7 @@ export function MapView({
     rangeRef.current = yearRange
     if (readyRef.current && mapRef.current) {
       applyYearFilter(mapRef.current, yearRange)
-      updateTracks(mapRef.current, featuresRef.current, yearRange)
+      updateTracks(mapRef.current, featuresRef.current, yearRange, colorsRef.current)
     }
   }, [yearRange])
 

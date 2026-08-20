@@ -37,10 +37,7 @@ function App() {
     fetchSpeciesList().then(setSpeciesList)
   }, [])
 
-  const speciesColors = useMemo(
-    () => buildSpeciesColors(speciesList.map((s) => s.scientific_name)),
-    [speciesList],
-  )
+  const speciesColors = useMemo(() => buildSpeciesColors(speciesList), [speciesList])
 
   const yearBounds = useMemo<[number, number] | null>(() => {
     const years: number[] = []
