@@ -11,7 +11,23 @@ export interface SpeciesMedia {
   sizeDiagram?: string
 }
 
-export const SPECIES_MEDIA: Record<string, SpeciesMedia> = {}
+const U = 'https://upload.wikimedia.org/wikipedia/commons/thumb'
+
+export const SPECIES_MEDIA: Record<string, SpeciesMedia> = {
+  // Real size-comparison diagrams (silhouette vs human/diver) sourced from Wikimedia Commons.
+  // Only a few species have one; the rest fall back to the to-scale bar chart.
+  'Rhincodon typus': {
+    sizeDiagram: `${U}/3/33/Whale-Shark-Scale-Chart-SVG-Steveoc86.svg/500px-Whale-Shark-Scale-Chart-SVG-Steveoc86.svg.png`,
+  },
+  'Cetorhinus maximus': {
+    sizeDiagram: `${U}/2/20/Basking-Shark-Scale-Chart-SVG-Steveoc86-001.svg/500px-Basking-Shark-Scale-Chart-SVG-Steveoc86-001.svg.png`,
+  },
+  'Carcharhinus leucas': {
+    // Wikipedia's lead image is the size diagram, so override the hero with a real photo.
+    photo: `${U}/3/3b/Requin_bouledogue_%28Carcharhinus_leucas%29_%28Ifremer_00813-92510_-_53590%29.jpg/500px-Requin_bouledogue_%28Carcharhinus_leucas%29_%28Ifremer_00813-92510_-_53590%29.jpg`,
+    sizeDiagram: `${U}/a/a1/Bull_shark_size.svg/500px-Bull_shark_size.svg.png`,
+  },
+}
 
 export function speciesPhoto(name: string, fallback?: string | null): string | null {
   return SPECIES_MEDIA[name]?.photo ?? fallback ?? null
