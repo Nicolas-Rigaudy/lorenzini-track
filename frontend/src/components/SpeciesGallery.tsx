@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../species'
 import type { SpeciesListItem } from '../speciesApi'
+import { speciesPhoto } from '../speciesMedia'
 
 interface SpeciesGalleryProps {
   species: SpeciesListItem[]
@@ -85,8 +86,8 @@ export function SpeciesGallery({ species, speciesColors, search, onSelect }: Spe
                 style={{
                   height: 82,
                   position: 'relative',
-                  background: summary?.thumbnailUrl
-                    ? `center / cover no-repeat url(${summary.thumbnailUrl})`
+                  background: speciesPhoto(s.scientific_name, summary?.thumbnailUrl)
+                    ? `center / cover no-repeat url(${speciesPhoto(s.scientific_name, summary?.thumbnailUrl)})`
                     : 'linear-gradient(135deg, #2f6d8c, #123a52)',
                 }}
               >

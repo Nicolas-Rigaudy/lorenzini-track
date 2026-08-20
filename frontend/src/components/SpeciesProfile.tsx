@@ -3,6 +3,7 @@ import { formatDate, type Study } from '../types'
 import { fetchSpeciesSummary, statusColor, type SpeciesSummary } from '../species'
 import { fetchSpeciesDetail, type SpeciesDetail } from '../speciesApi'
 import { SizeSchematic } from './SizeSchematic'
+import { speciesPhoto, speciesSizeDiagram } from '../speciesMedia'
 import { Histogram } from './Histogram'
 import { BarChart } from './BarChart'
 import { Icon } from './Icon'
@@ -97,8 +98,8 @@ export function SpeciesProfile({
           style={{
             position: 'relative',
             height: 172,
-            background: summary?.thumbnailUrl
-              ? `center / cover no-repeat url(${summary.thumbnailUrl})`
+            background: speciesPhoto(scientificName, summary?.thumbnailUrl)
+              ? `center / cover no-repeat url(${speciesPhoto(scientificName, summary?.thumbnailUrl)})`
               : 'linear-gradient(135deg, #2f6d8c, #123a52)',
           }}
         >
@@ -163,22 +164,34 @@ export function SpeciesProfile({
             )
           })()}
 
-          {/* Size */}
-          {facts?.max_length_m && (
+          {/* Size — a real size-comparison diagram if we have one, else a to-scale bar chart */}
+          {(speciesSizeDiagram(scientificName) || facts?.max_length_m) && (
             <Section icon="ruler" title="Size">
-              <div style={{ background: 'var(--color-surface-alt)', borderRadius: 10, padding: '12px 12px 6px' }}>
-                <SizeSchematic
-                  maxLengthM={facts.max_length_m}
-                  label={facts.common_name ?? scientificName}
-                  color={color}
-                />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6 }}>
-                  <span style={{ color: 'var(--color-ink-faint)' }}>Length</span>
-                  <span style={{ fontWeight: 700 }}>
-                    up to {facts.max_length_m} m
-                    {facts.max_weight_kg ? ` · ${formatWeight(facts.max_weight_kg)}` : ''}
-                  </span>
-                </div>
+              <div style={{ background: 'var(--color-surface-alt)', borderRadius: 10, padding: '12px 12px 8px' }}>
+                {speciesSizeDiagram(scientificName) ? (
+                  <img
+                    src={speciesSizeDiagram(scientificName) as string}
+                    alt={`Size comparison of ${facts?.common_name ?? scientificName} with a human`}
+                    style={{ display: 'block', width: '100%', height: 'auto', maxHeight: 150, objectFit: 'contain' }}
+                  />
+                ) : (
+                  facts?.max_length_m && (
+                    <SizeSchematic
+                      maxLengthM={facts.max_length_m}
+                      label={facts.common_name ?? scientificName}
+                      color={color}
+                    />
+                  )
+                )}
+                {facts?.max_length_m && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 8 }}>
+                    <span style={{ color: 'var(--color-ink-faint)' }}>Length</span>
+                    <span style={{ fontWeight: 700 }}>
+                      up to {facts.max_length_m} m
+                      {facts.max_weight_kg ? ` · ${formatWeight(facts.max_weight_kg)}` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
             </Section>
           )}
@@ -275,8 +288,8 @@ export function SpeciesProfile({
                           height: 42,
                           borderRadius: 6,
                           flexShrink: 0,
-                          background: summary?.thumbnailUrl
-                            ? `center / cover no-repeat url(${summary.thumbnailUrl})`
+                          background: speciesPhoto(scientificName, summary?.thumbnailUrl)
+                            ? `center / cover no-repeat url(${speciesPhoto(scientificName, summary?.thumbnailUrl)})`
                             : 'var(--color-surface-alt)',
                         }}
                       />

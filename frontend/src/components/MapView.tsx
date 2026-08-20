@@ -5,6 +5,7 @@ import { API_BASE_URL, BATHYMETRY_TILE_URL, MAP_STYLE_URL } from '../config'
 import { fetchAllUnderseaFeatureNames } from '../underseaFeatures'
 import { fetchSpeciesSummary } from '../species'
 import type { SpeciesListItem } from '../speciesApi'
+import { speciesPhoto } from '../speciesMedia'
 
 // OpenFreeMap's vector style has no ocean-depth/elevation data (OSM doesn't map the seafloor).
 // We keep only its boundary/label layers and put the EMODnet bathymetry raster underneath,
@@ -418,7 +419,8 @@ export function MapView({
         new maplibregl.Marker({ element: el }).setLngLat([s.centroid_lon, s.centroid_lat]).addTo(map),
       )
       fetchSpeciesSummary(s.scientific_name).then((sum) => {
-        if (sum?.thumbnailUrl) el.style.backgroundImage = `url(${sum.thumbnailUrl})`
+        const photo = speciesPhoto(s.scientific_name, sum?.thumbnailUrl)
+        if (photo) el.style.backgroundImage = `url(${photo})`
       })
     }
   }
