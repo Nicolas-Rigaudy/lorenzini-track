@@ -28,8 +28,10 @@ export function buildSpeciesColors(names: string[]): Record<string, string> {
   const uniq = [...new Set(names)].sort()
   const map: Record<string, string> = {}
   uniq.forEach((name, i) => {
+    // Golden-angle hue keeps every species distinct; muted saturation/lightness keeps the
+    // set calm and cohesive (not the jarring full-saturation rainbow).
     const hue = Math.round((i * 137.508) % 360)
-    map[name] = `hsl(${hue}, 68%, 52%)`
+    map[name] = `hsl(${hue}, 42%, 58%)`
   })
   return map
 }

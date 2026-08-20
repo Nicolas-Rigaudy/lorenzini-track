@@ -172,7 +172,7 @@ export function SpeciesProfile({
                   <img
                     src={speciesSizeDiagram(scientificName) as string}
                     alt={`Size comparison of ${facts?.common_name ?? scientificName} with a human`}
-                    style={{ display: 'block', width: '100%', height: 'auto', maxHeight: 150, objectFit: 'contain' }}
+                    style={{ display: 'block', width: '100%', height: 'auto', background: '#fff', borderRadius: 6 }}
                   />
                 ) : (
                   facts?.max_length_m && (

@@ -1,3 +1,5 @@
+from math import ceil
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -7,9 +9,10 @@ from app.models.occurrence import Occurrence
 
 router = APIRouter(tags=["occurrences"])
 
-# The unfiltered overview isn't rendered as points anymore (the frontend shows one image pin
-# per species), but keep a balanced per-species sample as a safety cap if it's ever called
-# without filters. A selected species/study returns ALL its points.
+# Point caps keep payloads small and the map fast. A selected species is evenly down-sampled
+# to at most MAX_POINTS (plenty for a dense map, and far faster than shipping 100k+ points);
+# a whole multi-species study keeps up to PER_SPECIES_OVERVIEW per species.
+MAX_POINTS = 20000
 PER_SPECIES_OVERVIEW = 2500
 
 _FIELDS = (
@@ -70,11 +73,15 @@ def list_occurrences(
     total = db.execute(select(func.count(Occurrence.id)).where(*filters)).scalar_one()
 
     if scientific_name is not None:
-        # A selected species returns ALL of its points (no down-sampling), optionally within
-        # a study.
-        query = select(*_FIELDS).where(*filters)
+        # A selected species: even id-strided sample capped at MAX_POINTS for a fast map.
+        if total > MAX_POINTS:
+            stride = ceil(total / MAX_POINTS)
+            query = select(*_FIELDS).where(*filters, Occurrence.id % stride == 0)
+            sampled = True
+        else:
+            query = select(*_FIELDS).where(*filters)
+            sampled = False
         rows = db.execute(query).all()
-        sampled = False
     else:
         # A whole multi-species study (or the unfiltered fallback): keep up to
         # PER_SPECIES_OVERVIEW points of each species so one huge species doesn't drown out

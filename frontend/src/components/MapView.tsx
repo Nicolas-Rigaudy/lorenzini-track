@@ -124,14 +124,14 @@ function decimals(n: number): number {
 // land. We skip tracks for such organisms (dots only). Precise GPS/Argos telemetry (many
 // decimals) still gets tracks, even when the animal revisits haul-out sites.
 function isCoarse(pts: OccFeature[]): boolean {
-  if (pts.length < 15) return false
-  const sample = pts.slice(0, 200)
+  if (pts.length < 10) return false
+  const sample = pts.slice(0, 400)
   let coarse = 0
   for (const p of sample) {
     const [lon, lat] = p.geometry.coordinates
-    if (decimals(lat) <= 2 && decimals(lon) <= 2) coarse++
+    if (decimals(lat) <= 2 || decimals(lon) <= 2) coarse++
   }
-  return coarse / sample.length > 0.7
+  return coarse / sample.length > 0.5
 }
 
 // Connect each organism's fixes into chronological LineStrings, coloured per individual and
@@ -282,7 +282,7 @@ async function loadOccurrences(
         [minLon, minLat],
         [maxLon, maxLat],
       ],
-      { padding: 80, duration: 1000, maxZoom: 8 },
+      { padding: 80, duration: 500, maxZoom: 8 },
     )
   }
 
