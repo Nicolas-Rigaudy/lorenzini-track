@@ -8,6 +8,7 @@
 > Complexity: Low
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # AI Context
 - Summary: Case-study README opening with the agreed line and the Lorenzini note, live URL, LICENSE, third-party licences and repo metadata.
@@ -23,7 +24,7 @@
 - In:
   - README opening: "Lorenzini Track: an open research project on shark telemetry, from tag to map", then one line on Stefano Lorenzini, who in 1678 described the ampullae of Lorenzini, the organs sharks use to sense faint electric fields.
   - Case study: problem, why simulated, tag-to-map architecture, uncertainty and sensitivity, limits, what is next; screenshots or a short capture.
-  - LICENSE: MIT for code and CC BY 4.0 for docs and simulated data (proposed; owner confirms).
+  - LICENSE: MIT for code and CC BY 4.0 for docs and simulated data (owner confirmed 2026-10-16); README states the demo is non-commercial because of CC BY-NC inputs.
   - Third-party data licences and the non-commercial note, linking the register from item_004.
   - Live URL in the README and the GitHub About field; repo description and topics.
 - Out:

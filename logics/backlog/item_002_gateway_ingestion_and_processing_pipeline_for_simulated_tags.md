@@ -8,6 +8,7 @@
 > Complexity: High
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # AI Context
 - Summary: Gateway that decodes, deduplicates and timestamps raw simulated messages; ingestion into a telemetry schema in PostGIS; processing with quality filtering and track reconstruction.
@@ -21,7 +22,8 @@
 
 # Scope
 - In:
-  - A gateway process that reads raw messages (transport per owner decision: file/HTTP drop or MQTT), decodes, deduplicates and timestamps them.
+  - Two transport networks (owner decision 2026-10-16): batch deliveries in the style of Argos for satellite tags, and MQTT (Mosquitto in docker-compose) for near-real-time trackers and receivers. A new decision record revises the "no message bus" line in `docs/decisions/0001`.
+  - A gateway process that consumes both networks, decodes, deduplicates and timestamps the raw messages.
   - Alembic migrations for deployments, raw satellite fixes (with location class) and acoustic detections, next to the existing Darwin Core tables, with a simulated flag.
   - Processing: speed and quality filter, track reconstruction, and a hook where item_003's sensitivity rules run.
   - One documented command that runs simulate → gateway → ingest → process locally.

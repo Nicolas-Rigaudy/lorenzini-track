@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # AI Context
 - Summary: OBIS/GBIF shark occurrences and one Copernicus Marine variable as context, with a licence register for every dataset, photo and basemap and on-map attribution.
@@ -24,7 +25,7 @@
   - A licence register (one file in the repo) listing each dataset, photo and basemap: source URL, licence, attribution text, date checked.
   - OBIS/GBIF shark occurrences for the featured species and region, with per-record licences kept and a sampling-effort caveat in the UI.
   - One Copernicus Marine variable (sea surface temperature) for the fleet's region and period.
-  - Decide keep or drop for the IMOS acoustic detections and the whale shark 1° aggregated data, per owner decision; if kept, the sensitivity rules apply.
+  - IMOS acoustic detections are dropped from 1.0 (owner decision 2026-10-16; real data comes with 1.2). Decide keep or drop for the whale shark 1° aggregated data as context; if kept, the sensitivity rules apply.
   - On-map attribution for every visible layer.
 - Out:
   - More than one environmental variable in 1.0.

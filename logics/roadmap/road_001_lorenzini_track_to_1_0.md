@@ -4,6 +4,7 @@
 > Related product: `prod_001_lorenzini_track_shark_telemetry_from_tag_to_map`
 > Related request: `req_000_lorenzini_track_1_0_public_showcase`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # AI Context
 - Summary: Roadmap for Lorenzini Track (codename poseidon) from a multi-taxon marine explorer prototype to a public 1.0 portfolio showcase: shark-only scope, simulated tag fleet and pipeline, uncertainty and sensitivity views, static hosted demo, case-study README; then a tag/edge device and one real dataset.
@@ -12,7 +13,7 @@
 - Skip when: You need execution details for a single backlog item; open the item instead.
 
 # Summary
-Owner framing decided 2026-10-16 (see the product brief): Lorenzini Track is a portfolio showcase, and 1.0 is a live demo link plus a case-study README, not an installable product. Today (0.1) the repo is a broad marine-wildlife explorer over PostGIS with eleven real datasets across five taxa, no simulation, no uncertainty display and no hosting. Ordering: cut to sharks and rename first so every later piece serves one story; then build the simulated tag fleet and the pipeline, which are the core of the showcase; then the views that make uncertainty and sensitivity visible, with open context layers; then the static export and hosting; then the case study. Scope freeze once accepted: new ideas go to 1.1 or later unless they block a 1.0 exit signal.
+Owner framing decided 2026-10-16 (see the product brief): Lorenzini Track is a portfolio showcase, and 1.0 is a live demo link plus a case-study README, not an installable product. Today (0.1) the repo is a broad marine-wildlife explorer over PostGIS with eleven real datasets across five taxa, no simulation, no uncertainty display and no hosting. Ordering: cut to sharks and rename first so every later piece serves one story; then build the simulated tag fleet and the pipeline, which are the core of the showcase; then the views that make uncertainty and sensitivity visible, with open context layers; then the static export and hosting; then the case study. Owner decisions 2026-10-16: MIT + CC BY 4.0 (non-commercial demo); scalloped hammerhead off eastern Australia; no real IMOS detections in 1.0; satellite batch deliveries plus MQTT for near-real-time trackers; species profiles kept for now; GitHub Pages, personal domain later. Scope freeze once accepted: new ideas go to 1.1 or later unless they block a 1.0 exit signal.
 
 ```mermaid
 flowchart TD
@@ -43,7 +44,7 @@ flowchart TD
 - `item_001_simulated_shark_tag_fleet`: Simulated shark tag fleet
 - `item_002_gateway_ingestion_and_processing_pipeline_for_simulated_tags`: Gateway, ingestion and processing pipeline for simulated tags
 - Goal: A reproducible fleet of simulated tags produces realistic raw telemetry that flows through a gateway, ingestion and processing into PostGIS.
-- Scope: Movement from published shark movement models (behavioural-state random walks, with parameters cited); a seeded fleet of fin-mounted satellite tags and acoustic tags; satellite fixes only at surfacing, with Argos location classes and their error; acoustic detections near a receiver array with range-dependent detection probability; duty cycles, battery drain, transmission gaps and failure; raw messages in tag- and receiver-like formats; a gateway that decodes, deduplicates and timestamps; ingestion into a telemetry schema (deployments, raw fixes, detections) next to the Darwin Core tables; processing with a speed/quality filter and track reconstruction; every record flagged as simulated; one command runs it end to end; unit tests for the simulator and the processing logic.
+- Scope: Movement from published shark movement models (behavioural-state random walks, with parameters cited); a seeded fleet of scalloped hammerheads off eastern Australia with fin-mounted satellite tags and acoustic tags; satellite fixes only at surfacing, with Argos location classes and their error; acoustic detections near a receiver array with range-dependent detection probability; duty cycles, battery drain, transmission gaps and failure; raw messages in tag- and receiver-like formats over two networks: batch deliveries in the style of Argos for satellite tags, and MQTT (Mosquitto in docker-compose) for near-real-time trackers and receivers, recorded in a new decision record revising 0001; a gateway that consumes both, decodes, deduplicates and timestamps; ingestion into a telemetry schema (deployments, raw fixes, detections) next to the Darwin Core tables; processing with a speed/quality filter and track reconstruction; every record flagged as simulated; one command runs it end to end; unit tests for the simulator and the processing logic.
 - Exit signal: One command generates the fleet from a seed and loads it; the same seed gives the same output; the processed tracks show gaps and per-class error distributions consistent with the cited sources.
 
 ## 0.4 - Uncertainty, sensitivity and context
@@ -86,7 +87,7 @@ flowchart TD
 
 # Risks
 - A simulation can look fake or, worse, look real: cite every model parameter, label everything simulated, and validate against published error and gap statistics.
-- Real positions (IMOS detections, occurrence records) can be sensitive too; publishing them unfiltered would contradict the project's own message.
+- Real positions (occurrence records now, IMOS detections from 1.2) can be sensitive too; publishing them unfiltered would contradict the project's own message.
 - CC BY-NC inputs limit reuse; attribution and the non-commercial note must be visible.
 - Static hosting limits: per-file size caps and HTTP range support for PMTiles must be checked on the chosen host; the current bathymetry proxy has no static equivalent yet.
 - Scope creep from the broad 0.1 prototype: the cut in 0.2 must actually remove code, not hide it.

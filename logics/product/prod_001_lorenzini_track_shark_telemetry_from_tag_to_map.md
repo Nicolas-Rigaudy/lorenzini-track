@@ -6,6 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet; see `docs/decisions/0001` to `0006`)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # Overview
 Lorenzini Track is an open research project on shark telemetry, from tag to map. It simulates a fleet of shark tags the way real tags behave, carries their data through a gateway, ingestion and processing pipeline like a real telemetry system, and publishes the result as a public map that shows where the data is uncertain and why some positions are deliberately coarsened. Stefano Lorenzini described in 1678 the ampullae of Lorenzini, the organs sharks use to sense faint electric fields; the project takes his name.
@@ -73,6 +74,12 @@ flowchart LR
 - 2026-08-17: no live tracking data, by design (`docs/decisions/0004-no-live-tracking-data.md`).
 - 2026-08-17: simulated telemetry promoted to a primary showcase, always labelled (`docs/decisions/0005-study-exploration-and-iot-showcase-refinement.md`).
 - 2026-08-17: Manx basking shark watch as a second study (`docs/decisions/0006-second-study-dataset.md`).
+- 2026-10-16: licence MIT for code, CC BY 4.0 for docs and simulated data; the demo is non-commercial because of CC BY-NC inputs, and the README says so.
+- 2026-10-16: featured fleet is scalloped hammerhead off eastern Australia (critically endangered; realistic acoustic receiver arrays in that region).
+- 2026-10-16: real IMOS acoustic detections are left out of 1.0; 1.0 shows simulated tracks plus occurrence context. Real data comes with 1.2.
+- 2026-10-16: two transport networks, to show different tracker technologies: satellite tags deliver in batches in the style of Argos, and near-real-time trackers and receivers publish over MQTT (Mosquitto). This revises the "no message bus" line in `docs/decisions/0001`; record it in a new decision record.
+- 2026-10-16: species profiles and photos stay for now (revisited when the demo takes shape).
+- 2026-10-16: hosting on GitHub Pages; a personal domain comes later and will host the owner's resume and all projects, this demo included.
 - 2026-10-16 (owner): name Lorenzini Track; portfolio showcase; 1.0 is a live demo plus a case-study README; shark-only scope reset; simulated tag fleet is the core; OBIS/GBIF and Copernicus Marine as context with recorded licences; data sensitivity as a feature; static hosting; post-1.0 a tag/edge device, then one real dataset through a research group.
 
 # Dataset licences (to verify in item_004)
@@ -91,11 +98,7 @@ flowchart LR
 - After 1.0: the demo is used to open a conversation with at least one research group about one real dataset (1.2).
 
 # Open questions
-- Which featured species and region for the fleet (the original preference was scalloped hammerhead; IMOS receiver arrays make Australian waters convenient for acoustic realism)?
-- Keep IMOS real acoustic detections under the sensitivity rules, or keep the demo to simulated tracks plus occurrence context only?
-- Gateway transport: file/HTTP drops in the style of Argos and receiver offloads, or an MQTT broker (which would revise the "no message bus" line in `docs/decisions/0001`)?
-- Licence: MIT for code and CC BY 4.0 for docs and simulated data, proposed for owner confirmation.
-- Host: GitHub Pages or Cloudflare Pages, and whether to use a custom domain.
+- None after the 2026-10-16 owner review (see Key product decisions).
 
 # References
 - Product back-reference: `req_000_lorenzini_track_1_0_public_showcase`

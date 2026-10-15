@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-16 01:16:31
 
 # AI Context
 - Summary: Cut the prototype to sharks only, rename poseidon to Lorenzini Track in code and docs, and get type-check, lint and backend tests green.
@@ -31,7 +32,7 @@
   - Fix the two `tsc -b` errors; make backend tests run against a disposable PostGIS; fix ruff findings.
 - Out:
   - New features.
-  - Reworking species profiles beyond removing non-shark entries (owner decision pending).
+  - Reworking species profiles beyond removing non-shark entries (owner decision 2026-10-16: keep them for now).
 
 # Acceptance criteria
 - AC1: `grep -ri poseidon` outside `.git` finds no hits except references to the codename in history notes.
