@@ -29,3 +29,11 @@ include = ["app*"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint.isort]
+# backend/alembic/ holds migrations; the `alembic` import is the installed package.
+known-third-party = ["alembic"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency injection is declared through argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]

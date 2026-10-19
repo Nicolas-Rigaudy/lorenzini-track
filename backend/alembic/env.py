@@ -20,9 +20,7 @@ def include_object(object, name, type_, reflected, compare_to):
     # PostGIS/tiger-geocoder ship dozens of their own tables (spatial_ref_sys, tiger.*, etc.)
     # that live in the same database but have no SQLAlchemy model. Without this, autogenerate
     # treats them as "removed" and Alembic would try to drop them.
-    if type_ == "table" and reflected and compare_to is None:
-        return False
-    return True
+    return not (type_ == "table" and reflected and compare_to is None)
 
 
 def run_migrations_offline() -> None:

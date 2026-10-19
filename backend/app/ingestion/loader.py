@@ -12,8 +12,9 @@ OBIS-SEAMAP Darwin Core Archives:
 To add a new source, write a reader that produces the two shapes below and calls `load`.
 """
 
+from collections.abc import Iterable
 from datetime import date, datetime
-from typing import Iterable, TypedDict
+from typing import TypedDict
 
 from app.core.db import SessionLocal
 from app.models.occurrence import Occurrence

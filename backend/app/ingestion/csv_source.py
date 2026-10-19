@@ -35,7 +35,7 @@ DEFAULT_MAPPING: dict[str, str] = {
 
 
 def _fetch_rows(source: str) -> list[dict]:
-    if source.startswith("http://") or source.startswith("https://"):
+    if source.startswith(("http://", "https://")):
         resp = httpx.get(source, follow_redirects=True, timeout=60.0)
         resp.raise_for_status()
         text = resp.text
