@@ -15,6 +15,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Disposable database for the backend tests: data lives in tmpfs and the container is
+  # removed after each run (see backend/scripts/test.sh). Not started by a plain `up`.
+  db-test:
+    image: postgis/postgis:16-3.4
+    profiles: ["test"]
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d test"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
   backend:
     build: ./backend
     env_file:
