@@ -22,6 +22,9 @@ export const SPECIES_MEDIA: Record<string, SpeciesMedia> = {
   'Cetorhinus maximus': {
     sizeDiagram: `${U}/2/20/Basking-Shark-Scale-Chart-SVG-Steveoc86-001.svg/500px-Basking-Shark-Scale-Chart-SVG-Steveoc86-001.svg.png`,
   },
+  'Galeocerdo cuvier': {
+    sizeDiagram: `${U}/8/8d/Tiger_shark_size.svg/500px-Tiger_shark_size.svg.png`,
+  },
   'Carcharhinus leucas': {
     // Wikipedia's lead image is the size diagram, so override the hero with a real photo.
     photo: `${U}/3/3b/Requin_bouledogue_%28Carcharhinus_leucas%29_%28Ifremer_00813-92510_-_53590%29.jpg/500px-Requin_bouledogue_%28Carcharhinus_leucas%29_%28Ifremer_00813-92510_-_53590%29.jpg`,

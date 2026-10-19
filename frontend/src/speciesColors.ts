@@ -22,13 +22,13 @@ const FALLBACK = '#9fb2bd'
 // Each taxon family gets a base hue; species within a family are shades of it. This is far
 // more cohesive than a rainbow — related animals read as related — while staying distinct.
 const GROUP_HUE: Record<string, number> = {
-  shark: 205, // ocean blue
-  ray: 185, // teal
-  turtle: 140, // green
-  pinniped: 32, // warm sand
-  seabird: 275, // violet
+  shark: 215, // blue
+  ray: 175, // teal
+  turtle: 130, // green
+  pinniped: 35, // warm sand
+  seabird: 280, // violet
   sirenian: 325, // magenta
-  other: 220,
+  other: 250,
 }
 
 export interface SpeciesColorInput {
@@ -52,9 +52,14 @@ export function buildSpeciesColors(species: SpeciesColorInput[]): Record<string,
     const sorted = [...new Set(names)].sort()
     const n = sorted.length
     sorted.forEach((name, i) => {
-      const spread = n === 1 ? 0 : i - (n - 1) / 2
-      const hue = Math.round((base + spread * 12 + 360) % 360)
-      const light = n === 1 ? 55 : Math.round(44 + (i / (n - 1)) * 22) // 44%..66%
+      // Keep the hue in a narrow band so a family stays visually itself (sharks stay blue, not
+      // green or purple) and tell members apart mainly by lightness. Lightness is interleaved
+      // (dark, light, dark, ...) so alphabetical neighbours never get near-identical shades.
+      const spread = n === 1 ? 0 : (i / (n - 1) - 0.5) * Math.min(44, 6 * (n - 1))
+      const hue = Math.round((base + spread + 360) % 360)
+      const half = Math.ceil(n / 2)
+      const rank = i % 2 === 0 ? i / 2 : half + (i - 1) / 2
+      const light = n === 1 ? 55 : Math.round(38 + (rank / (n - 1)) * 34) // 38%..72%
       map[name] = `hsl(${hue}, 52%, ${light}%)`
     })
   }
