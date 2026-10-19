@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet; see `docs/decisions/0001` to `0006`)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-10-16 01:16:31
+> Indicators reviewed: 2026-10-19 15:06:41
 
 # Overview
 Lorenzini Track is an open research project on shark telemetry, from tag to map. It simulates a fleet of shark tags the way real tags behave, carries their data through a gateway, ingestion and processing pipeline like a real telemetry system, and publishes the result as a public map that shows where the data is uncertain and why some positions are deliberately coarsened. Stefano Lorenzini described in 1678 the ampullae of Lorenzini, the organs sharks use to sense faint electric fields; the project takes his name.
