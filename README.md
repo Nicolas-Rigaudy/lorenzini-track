@@ -1,31 +1,37 @@
-# poseidon (codename — user-facing name TBD)
+# Lorenzini Track
 
-An open-source, scientifically-honest marine wildlife/biodiversity/telemetry explorer. See
-`docs/research/00-summary-and-recommendations.md` for the full research phase writeup and product
-rationale, and `docs/decisions/` for the concrete architecture/product decisions made.
+An open research project on shark telemetry, from tag to map. Named after Stefano Lorenzini, who
+described in 1678 the ampullae of Lorenzini, the organs sharks use to sense faint electric fields.
 
-## What this is (short version)
+Lorenzini Track will simulate a fleet of shark tags the way real tags behave, carry their data
+through a gateway, ingestion and processing pipeline, and publish the result as a map that shows
+where positions are uncertain and why some are deliberately coarsened. Real shark tracking data
+is mostly access-restricted, partly on purpose (see decision
+[0004](docs/decisions/0004-no-live-tracking-data.md)), so the tracks are simulated and labelled
+as simulated; open occurrence and environmental data give the real-world context.
 
-A layered explorer combining open marine biodiversity data (OBIS), environmental context
-(Copernicus Marine), and animal movement/telemetry — with a deliberate emphasis on making
-telemetry uncertainty and data-quality limitations visible rather than hidden. See decision
-[0001](docs/decisions/0001-product-direction.md) for the full reasoning.
+The framing is recorded in decision [0007](docs/decisions/0007-lorenzini-track-framing.md); the
+plan to 1.0 is in [`logics/roadmap/road_001_lorenzini_track_to_1_0.md`](logics/roadmap/road_001_lorenzini_track_to_1_0.md).
+
+## Status
+
+Milestone 0.2 (shark scope reset and rename) is in progress. What runs today is the 0.1
+prototype: a PostGIS-backed map explorer over real, open datasets (OBIS-SEAMAP/GBIF Darwin Core
+archives and the IMOS acoustic tracking archive). It still carries ingestion scripts for a few
+non-shark taxa; removing them is part of 0.2. The simulated fleet, uncertainty views and
+the hosted demo come in later milestones.
 
 ## Repository layout
 
 ```
-backend/     FastAPI + SQLAlchemy/GeoAlchemy2 API and data-ingestion CLI (Python)
-frontend/    React + Vite + MapLibre GL JS explorer UI (TypeScript)
+backend/        FastAPI + SQLAlchemy/GeoAlchemy2 + Alembic API and ingestion scripts (Python)
+frontend/       React + Vite + MapLibre GL JS map (TypeScript)
 docs/
-  research/    Research-phase findings (platforms, datasets, standards, product concepts)
-  decisions/   Architecture/product decision log
-  learning/    Domain-learning notes (GIS, marine biology, oceanography, telemetry, etc.)
-notebooks/   Jupyter notebooks for data exploration
-data/        Local/ingested data (gitignored — not committed)
+  decisions/    Architecture and product decision log
+  research/     Research-phase findings
+design-system/  UI design notes
+logics/         Product brief, roadmap, backlog and tasks
 ```
-
-Backend and frontend are deliberately decoupled (separate services, own Dockerfiles, talk over
-REST/GeoJSON + CORS) — see decision [0003](docs/decisions/0003-frontend-backend-architecture.md).
 
 ## Running locally
 
@@ -35,50 +41,39 @@ Requires Docker and Docker Compose.
 docker compose up --build
 ```
 
-- Backend API: http://localhost:8000 (health check at `/health`, interactive docs at `/docs`)
+- API: http://localhost:8000 (`/health`, interactive docs at `/docs`)
 - Frontend: http://localhost:5173
-- Postgres/PostGIS: localhost:5432 (user/password/db: `poseidon`/`poseidon`/`poseidon` — local dev
-  only, not for any real deployment)
+- PostGIS: localhost:5432 (user/password/db `lorenzini`/`lorenzini`/`lorenzini_track`, local
+  development only)
 
-Environment variables are read from `backend/.env` and `frontend/.env` (copy from the respective
-`.env.example` files if starting fresh — working defaults for local dev are already checked in via
-`.env.example`, `.env` itself is gitignored).
+Environment variables are read from `backend/.env` and `frontend/.env`; copy them from the
+`.env.example` files when starting fresh.
 
-### Backend without Docker
+Without Docker for the app itself (PostGIS still needed at `DATABASE_URL`):
+
+```
+cd backend && pip install -e ".[dev]" && alembic upgrade head && uvicorn app.main:app --reload
+cd frontend && npm install && npm run dev
+```
+
+## Loading data
+
+Each dataset has a script under `backend/app/ingestion/`; readers normalise the source and a
+shared loader upserts it. For example:
 
 ```
 cd backend
-pip install -e ".[dev]"
-uvicorn app.main:app --reload
+python -m app.ingestion.gbif_whale_sharks
+python -m app.ingestion.imos_sharks
 ```
 
-Requires a running Postgres/PostGIS instance reachable at `DATABASE_URL` (see `backend/.env`).
-
-### Database migrations
+## Checks
 
 ```
-cd backend
-alembic revision --autogenerate -m "description"
-alembic upgrade head
+backend/scripts/test.sh                          # backend tests on a fresh, disposable PostGIS
+cd backend && ruff check .
+cd frontend && npm run build && npm run lint     # type-check, build, oxlint
 ```
 
-### Frontend without Docker
-
-```
-cd frontend
-npm install
-npm run dev
-```
-
-## Data ingestion
-
-Not yet implemented — planned as standalone CLI scripts under `backend/app/ingestion/` (no live
-job queue/message bus; see decision [0001](docs/decisions/0001-product-direction.md) and
-`docs/research/07-technical-options.md`). Geospatial data-processing dependencies (GeoPandas,
-Xarray, Rasterio, etc.) are intentionally not yet added to `backend/pyproject.toml` — they'll be
-added when the first ingestion script is written, not before.
-
-## Status
-
-Research phase complete (`docs/research/`). Product direction and initial architecture decided
-(`docs/decisions/`). Scaffolding in progress. No ingestion or product features implemented yet.
+`backend/scripts/test.sh` starts the `db-test` compose service (data in tmpfs, port 5433),
+migrates it, runs pytest and removes it again.
