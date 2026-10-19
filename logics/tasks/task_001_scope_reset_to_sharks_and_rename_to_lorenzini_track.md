@@ -52,6 +52,7 @@
 - Done: MapView type errors fixed (0aa31d9); ruff clean (7c7f45e); disposable test PostGIS + `backend/scripts/test.sh` (4063195); point caps removed (3d47916); rename in code, config, compose, design system (01d5e63); decision 0007 superseding 0002 (7fd24f4); README rewritten (6707950).
 - 2026-10-19 owner decisions (decision 0008) replaced the shark-only cut: sharks lead, other species stay behind a taxon-family filter, nothing species-related is deleted, the undersea feature layer stays, points stay uncapped until 0.5. The undersea removal patch was not used.
 - Done after the decisions: docs reframed (roadmap, brief, request, item_000, this task, README, decision 0008; 64bb180); taxon-family colours tightened with interleaved shades and the old-session `speciesColors.ts` / `speciesMedia.ts` edits folded in (tiger shark size diagram URL checked, 200; 333234b); taxon-family filter in the header, opening on sharks, narrowing gallery, overview pins, studies, legend and time bounds, with the overview framed on the visible family (ed9ee5c).
+- 2026-10-19 owner change: sharks use a fixed 10-colour blue→cyan ramp assigned in legend order (each ≥3:1 on light and dark panels, neighbours clearly distinct); other families keep their single hue.
 - Left for later items: none from item_000. Unmodified `backend/scripts/test.sh` run waits for a reboot of the dev machine.
 - Finished on 2026-10-19.
 - Linked backlog item(s): `item_000_scope_reset_to_sharks_and_rename_to_lorenzini_track`

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SpeciesListItem } from '../speciesApi'
 import { Icon } from './Icon'
+import { byLegendName } from '../speciesColors'
 
 interface LegendProps {
   species: SpeciesListItem[]
@@ -9,9 +10,7 @@ interface LegendProps {
 
 export function Legend({ species, speciesColors }: LegendProps) {
   const [open, setOpen] = useState(false)
-  const sorted = [...species].sort((a, b) =>
-    (a.common_name ?? a.scientific_name).localeCompare(b.common_name ?? b.scientific_name),
-  )
+  const sorted = [...species].sort(byLegendName)
 
   // Anchored over the map, clear of the left studies panel and above the time filter.
   const base = { position: 'absolute' as const, left: 358, zIndex: 1, fontFamily: 'var(--font-sans)' }

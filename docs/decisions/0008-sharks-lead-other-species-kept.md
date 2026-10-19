@@ -22,6 +22,7 @@ On 2026-10-19 the owner replaced the shark-only scope:
   stay.
 - **Taxon-family colouring stays.** Each family keeps one base hue and its species are shades
   of it.
+- **Sharks get a wider blue→cyan range** (owner, 2026-10-19), so each shark species is easy to tell apart; other families keep their single hue.
 - **Undersea feature names stay.** The GEBCO undersea feature layer is map detail for the sea,
   not species content. Land detail stays as it is for now; the owner will judge later whether
   it distracts.
