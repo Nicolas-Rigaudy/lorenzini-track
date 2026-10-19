@@ -1,10 +1,10 @@
 ## item_000_scope_reset_to_sharks_and_rename_to_lorenzini_track - Scope reset to sharks and rename to Lorenzini Track
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 85%
-> Progress: 70%
+> Progress: 100%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -65,3 +65,6 @@
 
 # Tasks
 - `task_001_scope_reset_to_sharks_and_rename_to_lorenzini_track`
+
+# Notes
+- Task `task_001_scope_reset_to_sharks_and_rename_to_lorenzini_track` was finished via `logics-manager flow finish task` on 2026-10-19.

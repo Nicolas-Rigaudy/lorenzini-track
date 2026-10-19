@@ -7,7 +7,7 @@
 > Complexity: High
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-10-19 15:53:36
+> Indicators reviewed: 2026-10-19 16:03:21
 
 # AI Context
 - Summary: Umbrella request to take the codename "poseidon" multi-taxon marine explorer to Lorenzini Track 1.0, a shark-telemetry portfolio showcase: a clearly labelled simulated tag fleet feeding a gateway, ingestion and processing pipeline, uncertainty and data-sensitivity views, open context layers, and a static hosted demo with a case-study README.
@@ -26,7 +26,7 @@
 - Current state (last commit 7a1b433, 2026-10): FastAPI + SQLAlchemy/GeoAlchemy2 + Alembic backend over PostGIS with `study` and `occurrence` tables, eleven Darwin Core ingestion scripts (GBIF/STAT archives, IMOS ATF acoustic sharks, a CSV reader) feeding a shared loader; React 19 + Vite + MapLibre frontend with species/study panels, per-organism tracks, a time filter, species profiles with photos and size diagrams, dark mode, and an EMODnet bathymetry layer proxied through the backend.
 - Checks on 2026-10-16: `vite build` succeeds, `oxlint` is clean, but `npm run build` fails at `tsc -b` with two errors in `frontend/src/components/MapView.tsx` (TS2352 on the colour `match` expression, TS18047 on `mapRef.current`). The seven backend tests are integration tests against a live PostGIS and could not run here (no database); `ruff check` reports 27 findings.
 - Decision records stay in `docs/decisions/` (0001 to 0008); research in `docs/research/`.
-- Roadmap: `road_001_lorenzini_track_to_1_0`.
+- Roadmap: `road_001_lorenzini_track_to_1_0`; its Sequencing and Risks sections list the dependencies between milestones and the known risks (simulation realism, sensitive real positions, CC BY-NC inputs, static-hosting limits, scope creep).
 
 # Acceptance criteria
 - AC1: A visitor opens a public URL and, without any backend running, explores simulated shark tracks with visible Argos/acoustic uncertainty, sensitivity-aware precision, and open context layers, and every simulated element is labelled as simulated.
@@ -36,8 +36,8 @@
 # Definition of Ready (DoR)
 - [x] Problem statement is explicit and user impact is clear.
 - [x] Scope boundaries (in/out) are explicit.
-- [ ] Acceptance criteria are testable.
-- [ ] Dependencies and known risks are listed.
+- [x] Acceptance criteria are testable.
+- [x] Dependencies and known risks are listed.
 
 # Companion docs
 - Product brief(s): `prod_001_lorenzini_track_shark_telemetry_from_tag_to_map`

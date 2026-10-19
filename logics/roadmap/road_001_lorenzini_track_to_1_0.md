@@ -4,7 +4,7 @@
 > Related product: `prod_001_lorenzini_track_shark_telemetry_from_tag_to_map`
 > Related request: `req_000_lorenzini_track_1_0_public_showcase`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-10-19 15:53:28
+> Indicators reviewed: 2026-10-19 16:03:37
 
 # AI Context
 - Summary: Roadmap for Lorenzini Track (codename poseidon) from a multi-taxon marine explorer prototype to a public 1.0 portfolio showcase: sharks-first scope (other species kept behind a filter), simulated tag fleet and pipeline, uncertainty and sensitivity views, static hosted demo, case-study README; then a tag/edge device and one real dataset.
@@ -39,6 +39,7 @@ flowchart TD
 - Goal: Sharks lead the repository and the UI, under the project's real name, on a green baseline; the other species stay one filter away.
 - Scope: Sharks as the default map and list view, with a taxon-family filter for the other families (nothing species-related deleted; undersea feature names kept as sea map detail); taxon-family colouring kept and refined; point caps removed (uncapped until tiles in 0.5); rename `poseidon` in code, config, compose and docs; README rewritten to the new framing (case-study detail waits for 1.0); decision 0007 (2026-10-16 framing, supersedes the interim flagship in 0002) and decision 0008 (sharks lead, other species stay; supersedes 0007's shark-only line); fix the two `tsc -b` errors; backend tests runnable against a disposable PostGIS (compose or testcontainers) and green; ruff clean.
 - Exit signal: `grep -ri poseidon` finds only history and the local folder name, `npm run build` passes, backend tests pass against a fresh database, the map and lists open on sharks only, and the other species are reachable through the taxon filter.
+- Status: Met (2026-10-19), item_000 and task_001 done. Caveat: `backend/scripts/test.sh` passed only with a host-network compose override on the dev machine (Docker bridge networking broken until reboot).
 
 ## 0.3 - Simulated tag fleet and pipeline
 - `item_001_simulated_shark_tag_fleet`: Simulated shark tag fleet
