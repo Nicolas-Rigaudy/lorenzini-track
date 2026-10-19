@@ -17,14 +17,14 @@ function App() {
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null)
   const [selectedSpeciesName, setSelectedSpeciesName] = useState<string | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('poseidon-theme')
+    const saved = localStorage.getItem('lorenzini-track-theme')
     if (saved === 'light' || saved === 'dark') return saved
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('poseidon-theme', theme)
+    localStorage.setItem('lorenzini-track-theme', theme)
   }, [theme])
 
   useEffect(() => {

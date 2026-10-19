@@ -39,9 +39,9 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
         >
           <Icon name="waves" size={18} />
         </span>
-        <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 0.3 }}>Poseidon</span>
+        <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 0.3 }}>Lorenzini Track</span>
         <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', fontWeight: 300 }}>
-          Marine Wildlife &amp; Telemetry Explorer
+          Shark telemetry, from tag to map
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

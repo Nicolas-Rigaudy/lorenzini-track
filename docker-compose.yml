@@ -1,16 +1,18 @@
+name: lorenzini-track
+
 services:
   db:
     image: postgis/postgis:16-3.4
     environment:
-      POSTGRES_USER: poseidon
-      POSTGRES_PASSWORD: poseidon
-      POSTGRES_DB: poseidon
+      POSTGRES_USER: lorenzini
+      POSTGRES_PASSWORD: lorenzini
+      POSTGRES_DB: lorenzini_track
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U poseidon"]
+      test: ["CMD-SHELL", "pg_isready -U lorenzini -d lorenzini_track"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,7 +41,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+psycopg://poseidon:poseidon@db:5432/poseidon
+      DATABASE_URL: postgresql+psycopg://lorenzini:lorenzini@db:5432/lorenzini_track
     ports:
       - "8000:8000"
     volumes:

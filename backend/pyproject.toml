@@ -1,7 +1,7 @@
 [project]
-name = "poseidon-backend"
+name = "lorenzini-track-backend"
 version = "0.1.0"
-description = "API and data pipeline for the poseidon marine wildlife/telemetry explorer (codename, user-facing name TBD)"
+description = "API and data pipeline for Lorenzini Track: shark telemetry, from tag to map"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

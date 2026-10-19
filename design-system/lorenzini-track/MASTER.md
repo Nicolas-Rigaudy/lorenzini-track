@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** Poseidon
+**Project:** Lorenzini Track
 **Generated:** 2026-08-18 16:35:13
 **Category:** Analytics Dashboard
 **Design Dials:** Density 7/10 (Standard)

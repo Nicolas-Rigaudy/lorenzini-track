@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import health, occurrences, species, studies, tiles
 from app.core.config import settings
 
-app = FastAPI(title="poseidon-backend")
+app = FastAPI(title="Lorenzini Track API")
 
 app.add_middleware(
     CORSMiddleware,
