@@ -5,15 +5,19 @@ import { SpeciesPanel } from './components/SpeciesPanel'
 import { Header, HEADER_HEIGHT } from './components/Header'
 import { Legend } from './components/Legend'
 import { TimeFilter } from './components/TimeFilter'
+import { TaxonFilter } from './components/TaxonFilter'
 import { API_BASE_URL } from './config'
 import type { Study } from './types'
 import { fetchSpeciesList, type SpeciesListItem } from './speciesApi'
 import { buildSpeciesColors } from './speciesColors'
+import { DEFAULT_TAXON_GROUP, speciesInGroup, studiesInGroup, taxonOptions } from './taxa'
 
 function App() {
   const [studies, setStudies] = useState<Study[]>([])
   const [studiesLoading, setStudiesLoading] = useState(true)
   const [speciesList, setSpeciesList] = useState<SpeciesListItem[]>([])
+  const [speciesLoading, setSpeciesLoading] = useState(true)
+  const [taxonGroup, setTaxonGroup] = useState(DEFAULT_TAXON_GROUP)
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null)
   const [selectedSpeciesName, setSelectedSpeciesName] = useState<string | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -34,19 +38,31 @@ function App() {
         setStudies(data)
         setStudiesLoading(false)
       })
-    fetchSpeciesList().then(setSpeciesList)
+    fetchSpeciesList().then((list) => {
+      setSpeciesList(list)
+      setSpeciesLoading(false)
+    })
   }, [])
 
+  // Colours come from the full list so a species keeps its colour whatever the filter.
   const speciesColors = useMemo(() => buildSpeciesColors(speciesList), [speciesList])
+
+  // Sharks by default; the taxon filter narrows the gallery, map pins, studies and legend.
+  const taxa = useMemo(() => taxonOptions(speciesList), [speciesList])
+  const visibleSpecies = useMemo(() => speciesInGroup(speciesList, taxonGroup), [speciesList, taxonGroup])
+  const visibleStudies = useMemo(
+    () => studiesInGroup(studies, speciesList, taxonGroup),
+    [studies, speciesList, taxonGroup],
+  )
 
   const yearBounds = useMemo<[number, number] | null>(() => {
     const years: number[] = []
-    for (const s of studies) {
+    for (const s of visibleStudies) {
       if (s.date_range.start) years.push(Number(s.date_range.start.slice(0, 4)))
       if (s.date_range.end) years.push(Number(s.date_range.end.slice(0, 4)))
     }
     return years.length ? [Math.min(...years), Math.max(...years)] : null
-  }, [studies])
+  }, [visibleStudies])
 
   const [selectedYears, setSelectedYears] = useState<[number, number] | null>(null)
   useEffect(() => {
@@ -60,6 +76,14 @@ function App() {
       : null
 
   // Gallery → profile (and back). Selecting a species shows all of its occurrences on the map.
+  // Switching family goes back to the overview and resets the time window to its span.
+  function selectTaxonGroup(group: string) {
+    setTaxonGroup(group)
+    setSelectedSpeciesName(null)
+    setSelectedStudyId(null)
+    setSelectedYears(null)
+  }
+
   function selectSpecies(name: string | null) {
     setSelectedSpeciesName(name)
     setSelectedStudyId(null)
@@ -94,7 +118,9 @@ function App() {
 
   return (
     <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Header theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
+      <Header theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}>
+        <TaxonFilter options={taxa} value={taxonGroup} onChange={selectTaxonGroup} />
+      </Header>
       <div style={{ position: 'relative', flex: 1, height: `calc(100% - ${HEADER_HEIGHT}px)` }}>
         <MapView
           selectedStudyId={selectedStudyId}
@@ -102,18 +128,18 @@ function App() {
           speciesColors={speciesColors}
           theme={theme}
           yearRange={yearRange}
-          speciesList={speciesList}
+          speciesList={visibleSpecies}
           onPickSpecies={selectSpecies}
         />
         <StudiesPanel
-          studies={studies}
-          loading={studiesLoading}
+          studies={visibleStudies}
+          loading={studiesLoading || speciesLoading}
           selectedStudyId={selectedStudyId}
           onSelectStudy={selectStudy}
           onSelectSpecies={selectSpecies}
         />
         <SpeciesPanel
-          speciesList={speciesList}
+          speciesList={visibleSpecies}
           speciesColors={speciesColors}
           studySpecies={studySpecies}
           selectedSpeciesName={selectedSpeciesName}
@@ -122,7 +148,7 @@ function App() {
           selectedStudyId={selectedStudyId}
           onSelectStudy={focusStudy}
         />
-        <Legend species={speciesList} speciesColors={speciesColors} />
+        <Legend species={visibleSpecies} speciesColors={speciesColors} />
         {yearBounds && selectedYears && yearBounds[0] !== yearBounds[1] && (
           <TimeFilter bounds={yearBounds} value={selectedYears} onChange={setSelectedYears} />
         )}

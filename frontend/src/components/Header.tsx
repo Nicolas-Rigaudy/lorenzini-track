@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Icon } from './Icon'
 
 export const HEADER_HEIGHT = 56
@@ -5,9 +6,11 @@ export const HEADER_HEIGHT = 56
 interface HeaderProps {
   theme: 'light' | 'dark'
   onToggleTheme: () => void
+  /** Global controls shown in the middle of the bar (the taxon filter). */
+  children?: ReactNode
 }
 
-export function Header({ theme, onToggleTheme }: HeaderProps) {
+export function Header({ theme, onToggleTheme, children }: HeaderProps) {
   return (
     <header
       style={{
@@ -44,6 +47,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
           Shark telemetry, from tag to map
         </span>
       </div>
+      {children}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           onClick={onToggleTheme}

@@ -418,11 +418,14 @@ export function MapView({
     markersRef.current = []
   }
 
-  // Overview: one image pin per species at its centroid, instead of a cloud of dots.
+  // Overview: one image pin per species at its centroid, instead of a cloud of dots. The view
+  // is framed on the pins so the family in the taxon filter is what you see first.
   function showSpeciesMarkers(map: MapLibreMap) {
     clearSpeciesMarkers()
+    const bounds = new maplibregl.LngLatBounds()
     for (const s of speciesListRef.current) {
       if (s.centroid_lat == null || s.centroid_lon == null) continue
+      bounds.extend([s.centroid_lon, s.centroid_lat])
       const color = colorsRef.current[s.scientific_name] ?? '#9fb2bd'
       const el = makeSpeciesMarkerEl(color, s.common_name ?? s.scientific_name)
       el.addEventListener('click', () => pickSpeciesRef.current(s.scientific_name))
@@ -432,6 +435,15 @@ export function MapView({
       fetchSpeciesSummary(s.scientific_name).then((sum) => {
         const photo = speciesPhoto(s.scientific_name, sum?.thumbnailUrl)
         if (photo) el.style.backgroundImage = `url(${photo})`
+      })
+    }
+    if (!bounds.isEmpty()) {
+      // Keep the pins clear of the side panels and the time filter when there is room for it.
+      const wide = map.getContainer().clientWidth > 1100
+      map.fitBounds(bounds, {
+        padding: wide ? { top: 60, bottom: 150, left: 400, right: 440 } : 40,
+        maxZoom: 4,
+        duration: 500,
       })
     }
   }
