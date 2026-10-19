@@ -4,21 +4,21 @@
 > Related product: `prod_001_lorenzini_track_shark_telemetry_from_tag_to_map`
 > Related request: `req_000_lorenzini_track_1_0_public_showcase`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-10-16 01:16:31
+> Indicators reviewed: 2026-10-19 15:53:28
 
 # AI Context
-- Summary: Roadmap for Lorenzini Track (codename poseidon) from a multi-taxon marine explorer prototype to a public 1.0 portfolio showcase: shark-only scope, simulated tag fleet and pipeline, uncertainty and sensitivity views, static hosted demo, case-study README; then a tag/edge device and one real dataset.
+- Summary: Roadmap for Lorenzini Track (codename poseidon) from a multi-taxon marine explorer prototype to a public 1.0 portfolio showcase: sharks-first scope (other species kept behind a filter), simulated tag fleet and pipeline, uncertainty and sensitivity views, static hosted demo, case-study README; then a tag/edge device and one real dataset.
 - Keywords: roadmap, milestones, versions, lorenzini track, sharks, telemetry, simulation, argos, acoustic, sensitivity, pmtiles, static demo, 1.0
 - Use when: Planning or sequencing versions for Lorenzini Track.
 - Skip when: You need execution details for a single backlog item; open the item instead.
 
 # Summary
-Owner framing decided 2026-10-16 (see the product brief): Lorenzini Track is a portfolio showcase, and 1.0 is a live demo link plus a case-study README, not an installable product. Today (0.1) the repo is a broad marine-wildlife explorer over PostGIS with eleven real datasets across five taxa, no simulation, no uncertainty display and no hosting. Ordering: cut to sharks and rename first so every later piece serves one story; then build the simulated tag fleet and the pipeline, which are the core of the showcase; then the views that make uncertainty and sensitivity visible, with open context layers; then the static export and hosting; then the case study. Owner decisions 2026-10-16: MIT + CC BY 4.0 (non-commercial demo); scalloped hammerhead off eastern Australia; no real IMOS detections in 1.0; satellite batch deliveries plus MQTT for near-real-time trackers; species profiles kept for now; GitHub Pages, personal domain later. Scope freeze once accepted: new ideas go to 1.1 or later unless they block a 1.0 exit signal.
+Owner framing decided 2026-10-16 (see the product brief): Lorenzini Track is a portfolio showcase, and 1.0 is a live demo link plus a case-study README, not an installable product. Today (0.1) the repo is a broad marine-wildlife explorer over PostGIS with eleven real datasets across five taxa, no simulation, no uncertainty display and no hosting. Ordering: make sharks the default view and rename first so the shark story leads everything after (owner decision 2026-10-19, decision 0008: other species stay in the data and the UI behind a taxon-family filter; nothing species-related is deleted); then build the simulated tag fleet and the pipeline, which are the core of the showcase; then the views that make uncertainty and sensitivity visible, with open context layers; then the static export and hosting; then the case study. Owner decisions 2026-10-16: MIT + CC BY 4.0 (non-commercial demo); scalloped hammerhead off eastern Australia; no real IMOS detections in 1.0; satellite batch deliveries plus MQTT for near-real-time trackers; species profiles kept for now; GitHub Pages, personal domain later. Scope freeze once accepted: new ideas go to 1.1 or later unless they block a 1.0 exit signal.
 
 ```mermaid
 flowchart TD
   A[0.1 Multi-taxon prototype delivered]
-  B[0.2 Shark scope reset and rename]
+  B[0.2 Sharks-first scope and rename]
   C[0.3 Simulated tag fleet and pipeline]
   D[0.4 Uncertainty, sensitivity and context]
   E[0.5 Static hosted demo]
@@ -34,11 +34,11 @@ flowchart TD
 - Scope: Research phase and decisions 0001 to 0006; FastAPI + SQLAlchemy/GeoAlchemy2 + Alembic over PostGIS; Darwin Core `study`/`occurrence` model; pluggable ingestion readers and a shared loader; eleven datasets across sharks, rays, turtles, seals, manatees and seabirds; React + MapLibre UI with species and study panels, tracks, time filter, species profiles and dark mode; EMODnet bathymetry via a backend proxy.
 - Exit signal: Met in part (2026-10-16): `vite build` and `oxlint` pass; `tsc -b` fails with two errors in `MapView.tsx`; backend tests need a live PostGIS and were not run.
 
-## 0.2 - Shark scope reset and rename
+## 0.2 - Sharks-first scope and rename
 - `item_000_scope_reset_to_sharks_and_rename_to_lorenzini_track`: Scope reset to sharks and rename to Lorenzini Track
-- Goal: The repository tells one story, shark telemetry, under its real name, on a green baseline.
-- Scope: Remove non-shark taxa (ingestion scripts, species facts, colours, media); remove undersea POI markers and point caps; rename `poseidon` in code, config, compose and docs; README rewritten to the new framing (case-study detail waits for 1.0); a new decision record that supersedes the interim flagship in 0002 and records the 2026-10-16 framing; fix the two `tsc -b` errors; backend tests runnable against a disposable PostGIS (compose or testcontainers) and green; ruff clean.
-- Exit signal: `grep -ri poseidon` finds only history and the local folder name, `npm run build` passes, backend tests pass against a fresh database, and the map shows sharks only.
+- Goal: Sharks lead the repository and the UI, under the project's real name, on a green baseline; the other species stay one filter away.
+- Scope: Sharks as the default map and list view, with a taxon-family filter for the other families (nothing species-related deleted; undersea feature names kept as sea map detail); taxon-family colouring kept and refined; point caps removed (uncapped until tiles in 0.5); rename `poseidon` in code, config, compose and docs; README rewritten to the new framing (case-study detail waits for 1.0); decision 0007 (2026-10-16 framing, supersedes the interim flagship in 0002) and decision 0008 (sharks lead, other species stay; supersedes 0007's shark-only line); fix the two `tsc -b` errors; backend tests runnable against a disposable PostGIS (compose or testcontainers) and green; ruff clean.
+- Exit signal: `grep -ri poseidon` finds only history and the local folder name, `npm run build` passes, backend tests pass against a fresh database, the map and lists open on sharks only, and the other species are reachable through the taxon filter.
 
 ## 0.3 - Simulated tag fleet and pipeline
 - `item_001_simulated_shark_tag_fleet`: Simulated shark tag fleet
@@ -78,7 +78,7 @@ flowchart TD
 
 # Sequencing
 - Deliver milestones in ascending version order unless dependencies force a documented exception.
-- 0.2 gates everything: no new features on top of non-shark scope, a red type-check or tests that cannot run.
+- 0.2 gates everything: no new features on top of a view where sharks do not lead, a red type-check or tests that cannot run.
 - In 0.3, item_001 defines the raw message formats; item_002 starts once those formats are fixed.
 - item_004's licence register can start any time and must be complete before 0.5 publishes anything.
 - The sensitivity rules in item_003 run in processing, not only in the UI, so the 0.5 export never contains full-precision restricted positions.
@@ -90,7 +90,7 @@ flowchart TD
 - Real positions (occurrence records now, IMOS detections from 1.2) can be sensitive too; publishing them unfiltered would contradict the project's own message.
 - CC BY-NC inputs limit reuse; attribution and the non-commercial note must be visible.
 - Static hosting limits: per-file size caps and HTTP range support for PMTiles must be checked on the chosen host; the current bathymetry proxy has no static equivalent yet.
-- Scope creep from the broad 0.1 prototype: the cut in 0.2 must actually remove code, not hide it.
+- Scope creep from the broad 0.1 prototype: the non-shark species stay (decision 0008) but get no new features; the simulator, pipeline and uncertainty work stay shark-only.
 - Version labels are planning targets, not release promises.
 
 # References
@@ -98,4 +98,4 @@ flowchart TD
 - Request(s): `req_000_lorenzini_track_1_0_public_showcase`
 - Backlog item(s): see milestones
 - Task(s): (none yet)
-- Decision records: `docs/decisions/0001-product-direction.md` to `docs/decisions/0006-second-study-dataset.md`
+- Decision records: `docs/decisions/0001-product-direction.md` to `docs/decisions/0008-sharks-lead-other-species-kept.md`

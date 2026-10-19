@@ -2,9 +2,9 @@
 > From version: 0.1.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 90%
-> Confidence: 80%
-> Progress: 60%
+> Understanding: 95%
+> Confidence: 85%
+> Progress: 70%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -12,9 +12,9 @@
 > Indicators reviewed: 2026-10-19 14:57:46
 
 # AI Context
-- Summary: Deliver item_000: cut the prototype to sharks, rename poseidon to Lorenzini Track, and get tsc, oxlint, ruff and backend tests green on a disposable PostGIS.
-- Keywords: scope, reset, sharks, rename, lorenzini, track
-- Use when: Working on the 0.2 shark scope reset, the rename or the build/test baseline.
+- Summary: Deliver item_000: make sharks the default view with other species behind a taxon-family filter, keep and refine taxon-family colours, rename poseidon to Lorenzini Track, and get tsc, oxlint, ruff and backend tests green on a disposable PostGIS.
+- Keywords: scope, sharks first, taxon filter, colours, rename, lorenzini, track
+- Use when: Working on the 0.2 sharks-first scope, the rename or the build/test baseline.
 - Skip when: The work is about the simulator, pipeline, views or hosting.
 
 # Definition of Done (DoD)
@@ -30,7 +30,8 @@
 - AC1: `grep -ri poseidon` outside `.git` finds no hits except references to the codename in history notes.
 - AC2: `npm run build` and `oxlint` pass; `ruff check` is clean.
 - AC3: Backend tests pass against a freshly migrated PostGIS started by one documented command.
-- AC4: The map and lists show shark species only.
+- AC4: On first load the map and lists show shark species only; every other species stays reachable through a taxon-family filter, and no species content was deleted.
+- AC5: Species are coloured by taxon family: each family has one base hue and its species are shades of it, and the same species keeps its colour whatever the filter.
 
 # Plan
 - [ ] Use `python3 -m logics_manager flow progress task task_001_scope_reset_to_sharks_and_rename_to_lorenzini_track.md --progress <n>%` during multi-wave work.
@@ -43,9 +44,8 @@
 
 # Report
 - Done: MapView type errors fixed (0aa31d9); ruff clean (7c7f45e); disposable test PostGIS + `backend/scripts/test.sh` (4063195); point caps removed (3d47916); rename in code, config, compose, design system (01d5e63); decision 0007 superseding 0002 (7fd24f4); README rewritten (6707950).
-- Blocked, owner decision needed: deleting non-shark content (the six non-shark ingestion scripts, non-shark `species_facts.py` entries, `underseaFeatures.ts` and its layer). The undersea edit is ready as a patch but needs the file deletion to build.
-- Blocked, owner file: taxon-family colouring lives in `frontend/src/speciesColors.ts`, which has uncommitted owner edits; `speciesMedia.ts` already holds shark entries only.
-- Not yet: AC4 check on a fresh database loaded with the shark scripts only, and a visual check of the UI.
+- 2026-10-19 owner decisions (decision 0008) replaced the shark-only cut: sharks lead, other species stay behind a taxon-family filter, nothing species-related is deleted, the undersea feature layer stays, points stay uncapped until 0.5. The deletion blocker is gone; the undersea removal patch is not used. The uncommitted `speciesColors.ts` / `speciesMedia.ts` edits are old-session leftovers to review and fold into the colouring work.
+- Not yet: taxon-family filter with sharks as default, colour refinement, AC4/AC5 checks.
 
 # Links
 - Request: `req_000_lorenzini_track_1_0_public_showcase`

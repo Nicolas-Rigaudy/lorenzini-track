@@ -10,16 +10,20 @@ is mostly access-restricted, partly on purpose (see decision
 [0004](docs/decisions/0004-no-live-tracking-data.md)), so the tracks are simulated and labelled
 as simulated; open occurrence and environmental data give the real-world context.
 
-The framing is recorded in decision [0007](docs/decisions/0007-lorenzini-track-framing.md); the
+Sharks lead: they are the headline story, the default map view and the simulated fleet. The
+other marine species already in the data (a devil ray, turtles, a seal, a manatee, seabirds)
+stay, one taxon filter away.
+
+The framing is recorded in decisions [0007](docs/decisions/0007-lorenzini-track-framing.md) and
+[0008](docs/decisions/0008-sharks-lead-other-species-kept.md); the
 plan to 1.0 is in [`logics/roadmap/road_001_lorenzini_track_to_1_0.md`](logics/roadmap/road_001_lorenzini_track_to_1_0.md).
 
 ## Status
 
-Milestone 0.2 (shark scope reset and rename) is in progress. What runs today is the 0.1
-prototype: a PostGIS-backed map explorer over real, open datasets (OBIS-SEAMAP/GBIF Darwin Core
-archives and the IMOS acoustic tracking archive). It still carries ingestion scripts for a few
-non-shark taxa; removing them is part of 0.2. The simulated fleet, uncertainty views and
-the hosted demo come in later milestones.
+Milestone 0.2 (sharks-first scope and rename) is in progress. What runs today is a PostGIS-backed
+map explorer over real, open datasets (OBIS-SEAMAP/GBIF Darwin Core archives and the IMOS
+acoustic tracking archive). The simulated fleet, uncertainty views and the hosted demo come in
+later milestones.
 
 ## Repository layout
 

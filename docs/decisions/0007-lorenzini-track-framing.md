@@ -1,6 +1,6 @@
 # 0007 — Lorenzini Track: Shark Telemetry Showcase, Simulated Fleet as Flagship
 
-Status: accepted
+Status: accepted; scope line superseded by [0008](0008-sharks-lead-other-species-kept.md)
 Date: 2026-10-16 (recorded 2026-10-19)
 Supersedes: the interim flagship choice in [0002](0002-flagship-track-dataset.md)
 
@@ -24,7 +24,8 @@ On 2026-10-16 the owner reframed the project:
   as a codename in history notes and the local folder name.
 - **Purpose:** a portfolio showcase. 1.0 is a live demo link plus a case-study README, not an
   installable product.
-- **Scope:** sharks only. Other taxa are cut from code, data scripts and facts.
+- **Scope:** sharks only. Other taxa are cut from code, data scripts and facts. *(Superseded on
+  2026-10-19 by [0008](0008-sharks-lead-other-species-kept.md): sharks lead, other species stay.)*
 - **Flagship:** a seeded, simulated fleet of scalloped hammerheads off eastern Australia, with
   fin-mounted satellite tags and acoustic tags, built from published movement models and labelled
   as simulated everywhere. It replaces the whale shark data as the flagship.
@@ -50,6 +51,7 @@ and the roadmap (`logics/roadmap/road_001_lorenzini_track_to_1_0.md`) hold the d
   fixes is dropped for 1.0.
 - 0002's "hammerhead remains the preferred species" is now delivered through simulation.
 - Milestone 0.2 removes non-shark ingestion scripts, facts, colours and the undersea POI layer,
-  and renames the project; later milestones build the simulator, pipeline and views.
+  and renames the project (the removals were dropped by 0008); later milestones build the
+  simulator, pipeline and views.
 - Decision 0001's "no message bus" will be revisited separately when MQTT is added for the
   simulated near-real-time trackers (milestone 0.3).
