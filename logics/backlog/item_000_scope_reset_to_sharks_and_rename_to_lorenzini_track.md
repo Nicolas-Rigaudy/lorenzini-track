@@ -1,14 +1,14 @@
 ## item_000_scope_reset_to_sharks_and_rename_to_lorenzini_track - Scope reset to sharks and rename to Lorenzini Track
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-10-16 01:16:31
+> Indicators reviewed: 2026-10-19 14:57:46
 
 # AI Context
 - Summary: Cut the prototype to sharks only, rename poseidon to Lorenzini Track in code and docs, and get type-check, lint and backend tests green.
@@ -58,3 +58,6 @@
 # Priority
 - Priority: High
 - Rationale: Every later milestone builds on this; a broad multi-taxon base and a red type-check would leak into the demo.
+
+# Tasks
+- `task_001_scope_reset_to_sharks_and_rename_to_lorenzini_track`
