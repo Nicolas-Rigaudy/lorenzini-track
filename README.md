@@ -20,7 +20,8 @@ plan to 1.0 is in [`logics/roadmap/road_001_lorenzini_track_to_1_0.md`](logics/r
 
 ## Status
 
-Milestone 0.2 (sharks-first scope and rename) is in progress. What runs today is a PostGIS-backed
+Milestone 0.2 (sharks-first scope and rename) is done; 0.3 (simulated tag fleet and pipeline)
+is next. What runs today is a PostGIS-backed
 map explorer over real, open datasets (OBIS-SEAMAP/GBIF Darwin Core archives and the IMOS
 acoustic tracking archive). The simulated fleet, uncertainty views and the hosted demo come in
 later milestones.
