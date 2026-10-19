@@ -388,7 +388,7 @@ function colorExpression(speciesColors: Record<string, string>): maplibregl.Expr
     ['get', 'scientific_name'],
     ...entries.flatMap(([name, color]) => [name, color]),
     '#9fb2bd',
-  ] as maplibregl.ExpressionSpecification
+  ] as unknown as maplibregl.ExpressionSpecification
 }
 
 export function MapView({
@@ -519,12 +519,14 @@ export function MapView({
           applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
         })
 
-        addOccurrenceLayers(mapRef.current as MapLibreMap, (name) => pickSpeciesRef.current(name))
-        mapRef.current.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
-        applyMapTheme(mapRef.current as MapLibreMap, themeRef.current)
-        applyYearFilter(mapRef.current as MapLibreMap, rangeRef.current)
+        const map = mapRef.current
+        if (cancelled || !map) return
+        addOccurrenceLayers(map, (name) => pickSpeciesRef.current(name))
+        map.setPaintProperty('occurrence-point', 'circle-color', colorExpression(colorsRef.current))
+        applyMapTheme(map, themeRef.current)
+        applyYearFilter(map, rangeRef.current)
         readyRef.current = true
-        refresh(mapRef.current as MapLibreMap, selectedStudyId, selectedSpeciesName, false)
+        refresh(map, selectedStudyId, selectedSpeciesName, false)
       })
     })
 
