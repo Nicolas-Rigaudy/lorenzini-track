@@ -1,13 +1,14 @@
 ## item_001_simulated_shark_tag_fleet - Simulated shark tag fleet
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-19 16:29:45
 
 # AI Context
 - Summary: A seeded simulator that moves sharks with published movement models and samples them like real satellite and acoustic tags, emitting raw tag and receiver messages.
@@ -55,3 +56,6 @@
 # Priority
 - Priority: High
 - Rationale: The simulated fleet is the core of the showcase and the source of every track in the demo.
+
+# Tasks
+- `task_002_simulated_shark_tag_fleet`
