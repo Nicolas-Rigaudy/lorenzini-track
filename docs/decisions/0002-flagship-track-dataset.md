@@ -1,6 +1,6 @@
 # 0002 — Flagship Movement Dataset: Ningaloo Outlook Whale Shark Tracking (GBIF, aggregated)
 
-Status: accepted (interim — expected to be revisited, see Consequences)
+Status: superseded by [0007](0007-lorenzini-track-framing.md) (was accepted as interim)
 Date: 2026-08-17
 
 ## Context
