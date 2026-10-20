@@ -1,10 +1,10 @@
 ## item_001_simulated_shark_tag_fleet - Simulated shark tag fleet
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 10%
+> Progress: 100%
 > Complexity: High
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -59,3 +59,6 @@
 
 # Tasks
 - `task_002_simulated_shark_tag_fleet`
+
+# Notes
+- Task `task_002_simulated_shark_tag_fleet` was finished via `logics-manager flow finish task` on 2026-10-20.

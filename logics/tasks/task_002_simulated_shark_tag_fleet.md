@@ -1,10 +1,10 @@
 ## task_002_simulated_shark_tag_fleet - Simulated shark tag fleet
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -18,10 +18,10 @@
 - Skip when: The work is about the gateway, storage, processing or the map (item_002 onwards).
 
 # Definition of Done (DoD)
-- [ ] The backlog scope is implemented.
-- [ ] Acceptance criteria are covered.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] The backlog scope is implemented.
+- [x] Acceptance criteria are covered.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # Backlog
 - `item_001_simulated_shark_tag_fleet`
@@ -38,9 +38,14 @@
 
 # Validation
 - (no validation recorded yet)
+- Finish workflow executed on 2026-10-20.
+- Linked backlog/request close verification passed.
 
 # Report
-- Not started.
+- Simulator in backend/app/simulator, formats in adr_001; 41 simulator tests green (run with --noconftest, the DB fixtures need the compose db). AC1-AC4 each have a test.
+- Finished on 2026-10-20.
+- Linked backlog item(s): `item_001_simulated_shark_tag_fleet`
+- Related request(s): `req_000_lorenzini_track_1_0_public_showcase`
 
 # Links
 - Request: `req_000_lorenzini_track_1_0_public_showcase`
