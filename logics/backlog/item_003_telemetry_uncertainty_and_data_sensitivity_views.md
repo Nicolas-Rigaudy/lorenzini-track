@@ -1,13 +1,14 @@
 ## item_003_telemetry_uncertainty_and_data_sensitivity_views - Telemetry uncertainty and data-sensitivity views
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 30%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-10-22 00:47:50
 
 # AI Context
 - Summary: Map views for Argos-class error, acoustic receiver ranges and gaps, plus sensitivity rules (precision levels, publication delay, coarsening by conservation status) applied in processing, with an in-product explainer.
@@ -51,3 +52,6 @@
 # Priority
 - Priority: High
 - Rationale: Visible uncertainty and sensitivity handling are what set the project apart from a plain track map.
+
+# Tasks
+- `task_005_telemetry_uncertainty_and_data_sensitivity_views`
