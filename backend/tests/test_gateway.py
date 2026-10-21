@@ -12,6 +12,7 @@ from app.gateway.gateway import Gateway
 from app.gateway.messages import SatelliteFix
 from app.processing.tracks import ProcessingParams, reconstruct
 from app.simulator import fleet, formats
+from app.simulator.geo import haversine_km
 
 T0 = datetime(2025, 11, 1, tzinfo=UTC)
 HEADER = "program,platform_id,satellite,loc_date,loc_class,latitude,longitude,nb_messages,raw_data,simulated\n"
@@ -175,3 +176,24 @@ def test_each_delivery_is_recorded_with_its_counts():
     assert gateway.fix_delivery == {
         (990001, datetime(2025, 11, 2, 3, 4, 5, tzinfo=UTC)): delivery.name
     }
+
+
+def test_processed_points_keep_the_published_error_of_their_class():
+    # Milestone 0.3 exit signal: about 68 % of the processed points of each class lie within
+    # the class's 68th-percentile radius of the true position (costa2010 Table 4).
+    run = fleet.run(fleet.FleetConfig(seed=7))
+    truth = {(loc.platform_id, loc.loc_date): loc for loc in run.argos_locations}
+    gateway = loaded(formats.render(run))
+    within: dict[str, list[bool]] = {}
+    for track in reconstruct(list(gateway.fixes.values())):
+        for point in (p for segment in track.segments for p in segment):
+            loc = truth[(track.platform_id, point.fixed_at)]
+            distance = haversine_km(
+                point.latitude, point.longitude, loc.true_latitude, loc.true_longitude
+            )
+            within.setdefault(point.loc_class, []).append(distance <= point.error_km)
+    pooled = [w for values in within.values() for w in values]
+    assert 0.62 <= sum(pooled) / len(pooled) <= 0.75
+    for values in within.values():
+        if len(values) >= 100:
+            assert 0.58 <= sum(values) / len(values) <= 0.78
