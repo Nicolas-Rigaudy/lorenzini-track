@@ -89,15 +89,12 @@ def decode_argos_csv(text: str, received_at: datetime):
             yield exc
 
 
-def decode_mqtt_line(line: str):
-    """Decode one line of the MQTT log into ('detection' | 'status', record) pairs."""
+def decode_receiver_message(topic: str, payload: object, received_at: datetime):
+    """Decode one receiver message (topic and parsed JSON payload) into detections or a status."""
     try:
-        publish = json.loads(line)
-        payload = publish["payload"]
-        received_at = parse_time(publish["published_at"])
         receiver_id = payload["receiver_id"]
         simulated = payload["simulated"] is True
-        topic_kind = publish["topic"].rsplit("/", 1)[-1]
+        topic_kind = topic.rsplit("/", 1)[-1]
         if payload["format"] == DETECTIONS_FORMAT and topic_kind == "detections":
             return [
                 AcousticDetection(
@@ -124,3 +121,22 @@ def decode_mqtt_line(line: str):
     except (KeyError, TypeError, ValueError, AttributeError) as exc:
         raise MalformedMessage(f"unreadable receiver message: {exc!r}") from exc
     raise MalformedMessage(f"unknown receiver message format: {payload.get('format')!r}")
+
+
+def decode_mqtt_payload(topic: str, payload: bytes, received_at: datetime):
+    """Decode a message as it arrives from the broker: raw payload bytes, JSON inside."""
+    try:
+        message = json.loads(payload)
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise MalformedMessage(f"payload is not JSON: {exc!r}") from exc
+    return decode_receiver_message(topic, message, received_at)
+
+
+def decode_mqtt_line(line: str):
+    """Decode one line of the MQTT log into AcousticDetection or ReceiverStatus records."""
+    try:
+        publish = json.loads(line)
+        topic, payload, published_at = publish["topic"], publish["payload"], publish["published_at"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise MalformedMessage(f"unreadable MQTT log line: {exc!r}") from exc
+    return decode_receiver_message(topic, payload, parse_time(published_at))

@@ -1,6 +1,7 @@
 """Gateway decoding, deduplication and malformed-message handling (item_002 AC2, AC4), and
 track reconstruction (AC3), run on simulator output without a database."""
 
+import json
 import logging
 from datetime import UTC, datetime, timedelta
 
@@ -145,3 +146,32 @@ def test_simulated_tracks_reconstruct_with_every_class(run, files):
     assert len(tracks) >= 1
     points = [p for t in tracks for s in t.segments for p in s]
     assert points and all(p.loc_class != "Z" for p in points)
+
+
+def test_broker_payloads_decode_like_the_log_lines(files):
+    line = files["mqtt/publishes.jsonl"].splitlines()[0]
+    publish = json.loads(line)
+    received_at = decode.parse_time(publish["published_at"])
+    from_log = decode.decode_mqtt_line(line)
+    from_broker = decode.decode_mqtt_payload(
+        publish["topic"], formats.dumps(publish["payload"]).encode(), received_at
+    )
+    assert from_broker == from_log
+
+
+def test_unreadable_broker_payloads_are_skipped():
+    gateway = Gateway()
+    gateway.ingest_mqtt_message("lorenzini/sim/receivers/R1/status", b"\xff\x00", T0)
+    gateway.ingest_mqtt_message("lorenzini/sim/receivers/R1/status", b'{"format": "x"}', T0)
+    assert gateway.stats["malformed"] == 2 and not gateway.statuses
+
+
+def test_each_delivery_is_recorded_with_its_counts():
+    gateway = Gateway()
+    gateway.ingest_argos_delivery("LT-SIM_20251102T0600Z.csv", HEADER + GOOD + "x,y\n")
+    (delivery,) = gateway.deliveries
+    assert (delivery.rows_decoded, delivery.rows_malformed) == (1, 1)
+    assert delivery.delivered_at == datetime(2025, 11, 2, 6, tzinfo=UTC)
+    assert gateway.fix_delivery == {
+        (990001, datetime(2025, 11, 2, 3, 4, 5, tzinfo=UTC)): delivery.name
+    }
