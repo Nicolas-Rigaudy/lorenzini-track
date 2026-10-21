@@ -1,14 +1,14 @@
 ## item_004_open_context_layers_with_a_dataset_licence_register - Open context layers with a dataset licence register
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-10-16 01:16:31
+> Indicators reviewed: 2026-10-22 00:49:17
 
 # AI Context
 - Summary: OBIS/GBIF shark occurrences and one Copernicus Marine variable as context, with a licence register for every dataset, photo and basemap and on-map attribution.
@@ -53,3 +53,6 @@
 # Priority
 - Priority: Medium
 - Rationale: Context makes the tracks meaningful, and nothing can be published before its licence is known.
+
+# Tasks
+- `task_006_open_context_layers_with_a_dataset_licence_register`
