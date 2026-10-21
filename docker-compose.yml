@@ -36,12 +36,30 @@ services:
       timeout: 5s
       retries: 15
 
+  # MQTT broker for the near-real-time trackers and receivers (decision 0009).
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  # Disposable broker for the backend tests, started and removed with db-test.
+  mqtt-test:
+    image: eclipse-mosquitto:2
+    profiles: ["test"]
+    ports:
+      - "1884:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
   backend:
     build: ./backend
     env_file:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg://lorenzini:lorenzini@db:5432/lorenzini_track
+      MQTT_HOST: mqtt
     ports:
       - "8000:8000"
     volumes:
@@ -49,6 +67,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mqtt:
+        condition: service_started
 
   frontend:
     build: ./frontend
