@@ -21,16 +21,19 @@ plan to 1.0 is in [`logics/roadmap/road_001_lorenzini_track_to_1_0.md`](logics/r
 ## Status
 
 Milestone 0.2 (sharks-first scope and rename) is done; 0.3 (simulated tag fleet and pipeline)
-is next. What runs today is a PostGIS-backed
+is in progress. What runs today is a PostGIS-backed
 map explorer over real, open datasets (OBIS-SEAMAP/GBIF Darwin Core archives and the IMOS
-acoustic tracking archive). The simulated fleet, uncertainty views and the hosted demo come in
+acoustic tracking archive), and a seeded simulated fleet that flows through a gateway into
+PostGIS as processed tracks (not on the map yet). Uncertainty views and the hosted demo come in
 later milestones.
 
 ## Repository layout
 
 ```
-backend/        FastAPI + SQLAlchemy/GeoAlchemy2 + Alembic API and ingestion scripts (Python)
+backend/        FastAPI + SQLAlchemy/GeoAlchemy2 + Alembic API, ingestion scripts, tag simulator,
+                gateway and processing pipeline (Python)
 frontend/       React + Vite + MapLibre GL JS map (TypeScript)
+mosquitto/      MQTT broker configuration (local development only)
 docs/
   decisions/    Architecture and product decision log
   research/     Research-phase findings
@@ -50,6 +53,7 @@ docker compose up --build
 - Frontend: http://localhost:5173
 - PostGIS: localhost:5432 (user/password/db `lorenzini`/`lorenzini`/`lorenzini_track`, local
   development only)
+- MQTT broker (Mosquitto): localhost:1883, anonymous, local development only
 
 Environment variables are read from `backend/.env` and `frontend/.env`; copy them from the
 `.env.example` files when starting fresh.
@@ -72,6 +76,24 @@ python -m app.ingestion.gbif_whale_sharks
 python -m app.ingestion.imos_sharks
 ```
 
+## Simulated tag fleet
+
+One command takes a seed to processed tracks in PostGIS (needs PostGIS and Mosquitto up):
+
+```
+docker compose up -d db mqtt
+cd backend && python -m app.pipeline --seed 42
+```
+
+It simulates the fleet (`app/simulator`), delivers the satellite tags' Argos-style batches into
+an inbox and replays the receivers' messages over MQTT (the two transport networks of decision
+[0009](docs/decisions/0009-two-transport-networks.md)), lets the gateway decode, deduplicate and
+timestamp both, stores deployments, fixes, detections and receiver statuses, then filters the
+fixes and rebuilds the tracks (`track_segment`, `track_point`). Every row is flagged
+`simulated`. Files go to `data/pipeline/seed-<seed>/`; running it again stores nothing twice.
+The raw message formats are in
+[`adr_001`](logics/architecture/adr_001_raw_tag_and_receiver_message_formats.md).
+
 ## Checks
 
 ```
@@ -80,5 +102,6 @@ cd backend && ruff check .
 cd frontend && npm run build && npm run lint     # type-check, build, oxlint
 ```
 
-`backend/scripts/test.sh` starts the `db-test` compose service (data in tmpfs, port 5433),
-migrates it, runs pytest and removes it again.
+`backend/scripts/test.sh` starts the `db-test` and `mqtt-test` compose services (PostGIS with
+data in tmpfs on port 5433, Mosquitto on port 1884), migrates the database, runs pytest and
+removes both again.
