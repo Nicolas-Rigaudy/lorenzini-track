@@ -1,14 +1,14 @@
 ## item_002_gateway_ingestion_and_processing_pipeline_for_simulated_tags - Gateway, ingestion and processing pipeline for simulated tags
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: General
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-10-16 01:16:31
+> Indicators reviewed: 2026-10-21 17:39:54
 
 # AI Context
 - Summary: Gateway that decodes, deduplicates and timestamps raw simulated messages; ingestion into a telemetry schema in PostGIS; processing with quality filtering and track reconstruction.
@@ -56,3 +56,6 @@
 # Priority
 - Priority: High
 - Rationale: The tag-to-map pipeline is the engineering half of the story and feeds every later view.
+
+# Tasks
+- `task_003_gateway_ingestion_and_processing_pipeline_for_simulated_tags`
