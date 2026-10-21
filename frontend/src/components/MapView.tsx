@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { API_BASE_URL, BATHYMETRY_TILE_URL, MAP_STYLE_URL } from '../config'
+import { BATHYMETRY_TILE_URL, MAP_STYLE_URL } from '../config'
+import { fetchOccurrences } from '../dataSource'
 import { fetchAllUnderseaFeatureNames } from '../underseaFeatures'
 import { fetchSpeciesSummary } from '../species'
 import type { SpeciesListItem } from '../speciesApi'
@@ -254,11 +255,7 @@ async function loadOccurrences(
   speciesName: string | null,
   flyTo: boolean,
 ) {
-  const params: string[] = []
-  if (studyId) params.push(`study_id=${studyId}`)
-  if (speciesName) params.push(`scientific_name=${encodeURIComponent(speciesName)}`)
-  const url = `${API_BASE_URL}/occurrences${params.length ? `?${params.join('&')}` : ''}`
-  const data = await fetch(url).then((r) => r.json())
+  const data = await fetchOccurrences(studyId, speciesName)
 
   // Stamp a numeric year on each feature so the time slider can filter with a fast
   // map expression instead of re-fetching.

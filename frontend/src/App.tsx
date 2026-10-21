@@ -6,7 +6,7 @@ import { Header, HEADER_HEIGHT } from './components/Header'
 import { Legend } from './components/Legend'
 import { TimeFilter } from './components/TimeFilter'
 import { TaxonFilter } from './components/TaxonFilter'
-import { API_BASE_URL } from './config'
+import { fetchStudies } from './dataSource'
 import type { Study } from './types'
 import { fetchSpeciesList, type SpeciesListItem } from './speciesApi'
 import { buildSpeciesColors } from './speciesColors'
@@ -32,12 +32,10 @@ function App() {
   }, [theme])
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/studies`)
-      .then((r) => r.json())
-      .then((data) => {
-        setStudies(data)
-        setStudiesLoading(false)
-      })
+    fetchStudies().then((data) => {
+      setStudies(data)
+      setStudiesLoading(false)
+    })
     fetchSpeciesList().then((list) => {
       setSpeciesList(list)
       setSpeciesLoading(false)

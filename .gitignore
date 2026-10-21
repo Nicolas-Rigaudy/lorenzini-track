@@ -23,3 +23,6 @@ data/*
 .DS_Store
 .vscode/
 .idea/
+
+# Static demo data written by python -m app.export
+frontend/public/data/

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config'
+import { speciesDetailUrl, speciesListUrl } from './dataSource'
 
 export interface SpeciesFacts {
   common_name: string | null
@@ -47,11 +47,9 @@ export interface SpeciesDetail extends SpeciesListItem {
 }
 
 export async function fetchSpeciesList(): Promise<SpeciesListItem[]> {
-  return fetch(`${API_BASE_URL}/species`).then((r) => r.json())
+  return fetch(speciesListUrl()).then((r) => r.json())
 }
 
 export async function fetchSpeciesDetail(scientificName: string): Promise<SpeciesDetail> {
-  return fetch(`${API_BASE_URL}/species/${encodeURIComponent(scientificName)}`).then((r) =>
-    r.json(),
-  )
+  return fetch(speciesDetailUrl(scientificName)).then((r) => r.json())
 }
