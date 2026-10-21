@@ -94,6 +94,22 @@ fixes and rebuilds the tracks (`track_segment`, `track_point`). Every row is fla
 The raw message formats are in
 [`adr_001`](logics/architecture/adr_001_raw_tag_and_receiver_message_formats.md).
 
+## Static demo
+
+The hosted demo needs no backend. `python -m app.export --out ../frontend/public/data` writes
+what the API serves as files (`studies.json`, `species.json`, `species/<slug>.json`,
+`occurrences/study-<id>.geojson`) plus the processed tracks (`tracks.geojson`) and a
+`manifest.json` with sizes; it fails when the first-load data passes its gzip budget. Build the
+site against those files, with bathymetry loaded straight from EMODnet:
+
+```
+cd frontend && VITE_STATIC=1 VITE_BASE=/lorenzini-track/ npm run build
+VITE_BASE=/lorenzini-track/ npx vite preview   # http://localhost:4173/lorenzini-track/
+```
+
+The `Pages` workflow (`.github/workflows/pages.yml`) does the same on GitHub Actions and
+publishes to GitHub Pages. It runs by hand only (Actions tab, Run workflow), never on push.
+
 ## Checks
 
 ```
