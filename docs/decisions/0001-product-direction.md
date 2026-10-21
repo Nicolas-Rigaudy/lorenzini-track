@@ -1,6 +1,6 @@
 # 0001 — Product Direction: Layered Explorer (Concepts 1+2+3) with a Simulated-Telemetry Companion (Concept 6)
 
-Status: accepted
+Status: accepted; "no message bus" revised by [0009](0009-two-transport-networks.md)
 Date: 2026-08-17
 
 ## Context

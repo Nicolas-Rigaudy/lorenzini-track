@@ -54,4 +54,5 @@ and the roadmap (`logics/roadmap/road_001_lorenzini_track_to_1_0.md`) hold the d
   and renames the project (the removals were dropped by 0008); later milestones build the
   simulator, pipeline and views.
 - Decision 0001's "no message bus" will be revisited separately when MQTT is added for the
-  simulated near-real-time trackers (milestone 0.3).
+  simulated near-real-time trackers (milestone 0.3). *(Revisited in [0009](0009-two-transport-networks.md): Argos-style
+  batches for satellite tags, MQTT for near-real-time trackers.)*
