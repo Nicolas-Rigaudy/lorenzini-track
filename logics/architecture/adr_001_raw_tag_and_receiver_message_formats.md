@@ -6,9 +6,25 @@
 > Related task: `logics/tasks/task_002_simulated_shark_tag_fleet.md`
 > Drivers: item_002 needs a fixed input contract; the simulator must stay replaceable by real tag feeds
 > Reminder: Update status, linked refs, decision rationale, consequences, and follow-up work when you edit this doc.
+> Indicators reviewed: 2026-10-21 17:50:42
 
 # Overview
 - The simulator writes Argos-style CSV deliveries, MQTT-style receiver messages and a truth side channel in the formats below; the gateway (item_002) reads only the first two.
+
+```mermaid
+%% logics-kind: architecture
+%% logics-signature: architecture|raw_tag_and_receiver_message_formats|manual
+flowchart LR
+    S[Simulator] --> A[argos/*.csv lt-argos-csv/1]
+    S --> M[mqtt/publishes.jsonl lt-mqtt-log/1]
+    S --> D[deployments.jsonl lt-deployment/1]
+    S --> T[truth/*.jsonl lt-truth/1]
+    A --> G[Gateway item_002]
+    M --> G
+    D --> I[Ingest item_002]
+    G --> I
+    T --> V[Validation only]
+```
 
 # Context
 - The gateway must be written against raw messages, not against simulator internals, so that a real Argos or receiver feed could replace the simulator. Real feeds are not public (`docs/decisions/0004-no-live-tracking-data.md`), so the formats are modelled on typical Argos CSV exports and receiver MQTT uplinks, and every record is flagged simulated.
